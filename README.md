@@ -1,4 +1,4 @@
-# coco-transform-util
+# coco-transformation-util
 A python package to perform same transformation to coco-annotation as performed on the image.
 
 
@@ -6,15 +6,15 @@ A python package to perform same transformation to coco-annotation as performed 
 
 ### Way 1
 ```bash
-$ git clone https://git.cglcloud.com/ILC-APAC/coco-transform-util.git
-$ cd coco-transform-util
+$ git clone https://github.com/MR901/coco-transformation-util.git
+$ cd coco-transformation-util
 $ pip3 setup.py install
 ```
 
 ### Way 2
 ```bash
-$ pip3 install git+https://git.cglcloud.com/ILC-APAC/coco-transform-util.git
-<<< Username: <firstname_lastname@cargill.com>
+$ pip3 install git+https://github.com/MR901/coco-transformation-util.git
+<<< Username: <username>
 <<< Password: <personal access token or SSH key>
 ```
 Personal Access token looks like this `83b318cg875a5g302e5fdaag74afc8ceb6a91a2e`.
