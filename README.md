@@ -13,7 +13,7 @@ $ python3 setup.py install
 
 ### Way 2
 ```bash
-$ pip3 install https://github.com/MR901/coco-transformation-util.git
+$ pip3 install git+https://github.com/MR901/coco-transformation-util.git
 <<< Username: <username>
 <<< Password: <personal access token or SSH key>
 ```
