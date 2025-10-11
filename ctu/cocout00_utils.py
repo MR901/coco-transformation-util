@@ -1,5 +1,6 @@
 
 import cv2
+import os
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -89,15 +90,27 @@ class ImgTransform:
         Output:
             Return Image
         '''
-        ## Default Value
-        if rel_pt1 is None: rel_pt1=(0.0,0.0)
-        if rel_pt2 is None: rel_pt1=(1.0,1.0)
+        if rel_pt1 is None:
+            rel_pt1 = (0.0, 0.0)
+        if rel_pt2 is None:
+            rel_pt2 = (1.0, 1.0)
 
-        (x1,y1),(x2,y2) = rel_pt1, rel_pt2
-        ht,wd,_ = img.shape
-        (x1,y1) = (int(wd*x1), int(ht*y1))
-        (x2,y2) = (int(wd*x2), int(ht*y2))
-        return img[y1:y2, x1:x2]
+        x1, y1 = rel_pt1
+        x2, y2 = rel_pt2
+
+        # clamp to [0,1]
+        x1 = min(max(x1, 0.0), 1.0)
+        y1 = min(max(y1, 0.0), 1.0)
+        x2 = min(max(x2, 0.0), 1.0)
+        y2 = min(max(y2, 0.0), 1.0)
+
+        if x2 <= x1 or y2 <= y1:
+            raise ValueError('Invalid crop: rel_pt2 must be strictly greater than rel_pt1')
+
+        ht, wd = img.shape[:2]
+        x1p, y1p = int(wd * x1), int(ht * y1)
+        x2p, y2p = int(wd * x2), int(ht * y2)
+        return img[y1p:y2p, x1p:x2p]
 
 
 # -------------------------------------------------------------------------------------------------------- #
@@ -247,14 +260,17 @@ class Polygons:
             `Mask` class repersentation
         '''
         if not self._c_mask:
-            # <todo code changes>
-            # print((height, width))
-            # if height is None and width is None: raise Exception('Mask Height and Width is Not Known')
-            # print('-----||', (height, width))
-            size = (height, width) if (height and width) else self.proj_to_bbox().max_point
-            # Generate mask from polygons
-            mask = np.zeros(size)
-            mask = cv2.fillPoly(mask, self.style_points, 1)
+            # Determine target size as (height, width)
+            if height is None or width is None:
+                # bbox max_point returns (xmax, ymax) == (width, height)
+                xmax, ymax = self.proj_to_bbox().max_point
+                width = int(xmax)
+                height = int(ymax)
+            size = (int(height), int(width))
+
+            # Generate uint8 mask from polygons
+            mask = np.zeros(size, dtype=np.uint8)
+            cv2.fillPoly(mask, self.style_points, 1)
             self._c_mask = Mask(mask)
             self._c_mask._c_polygons = self
         return self._c_mask
@@ -267,7 +283,7 @@ class Polygons:
             color: RGB color repersentation (type: tuple, list)
             thickness: pixel thickness of box (type: int)
         '''
-        if color is None: 
+        if color is None:
             color = Visualize()._random_rgb_color()
         image_copy = image.copy()
         cv2.polylines(image_copy, self.style_points, isClosed=True, color=color, thickness=thickness)
@@ -286,7 +302,7 @@ class Mask:
     def area_of_mask(self):
         return self.array.sum()
 
-    def draw(self, image, color=None, alpha=0.5): 
+    def draw(self, image, color=None, alpha=0.5):
         '''
         Draws current mask to the image array of shape (width, height, 3)
 
@@ -327,13 +343,13 @@ class Visualize:
     def _view_img_using_matplot(self, image, title=None, figure_size=(6, 3)):
         ''' matplot based image view '''
         img = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-        fig = plt.figure(figsize=figure_size, dpi=150)# no visible frame
+        fig = plt.figure(figsize=figure_size, dpi=150)  # no visible frame
         if title is not None: plt.title(title)
         plt.imshow(img)
         plt.show()
 
     @staticmethod
-    def draw_annotation(img, coco_ann_di=None, cls_mapper_di=None, 
+    def draw_annotation(img, coco_ann_di=None, cls_mapper_di=None,
                         draw_what=['bbox', 'polyline', 'mask'], thickness=10):
         '''
         Desc: Draw the annotation on Image
@@ -389,7 +405,7 @@ Visualize().draw_annotation(img)
 '''
 
 
-def create_mask(image, poly, transparent_mask=True):
+def create_mask(image, poly, category_fill_value=1, transparent_mask=True, save_path=None):
     '''
     a mask is the same size as our image, but has only two pixel
     values, 0 and 255 -- pixels with a value of 0 (background) are
@@ -398,26 +414,57 @@ def create_mask(image, poly, transparent_mask=True):
     Inputs:
         img: bgr image
         poly: anno['annotations'][0]['segmentation']; in segmentation format
-            poly = [[300.63, 194.93, 324.29, 189.40, 340.06, 189.40, 350.44, 189.40, 
-                     392.36, 218.17, 399.41, 247.32, 371.61, 285.32, 295.65, 285.69, 
+            poly = [[300.63, 194.93, 324.29, 189.40, 340.06, 189.40, 350.44, 189.40,
+                     392.36, 218.17, 399.41, 247.32, 371.61, 285.32, 295.65, 285.69,
                      271.58, 267.24, 266.18, 232.56, 287.35, 201.20]]
+        category_fill_value: what value to use for filling this category; bg will be 0
         transparent_mask: If False Boolean mask else transparent mask
+
+        save_path: (SAVE USING THIS FUNCTION ONLY ELSE MASK VALUE CHANGES)
+                "png" is mandatory else some error is observed
+                eg. dir1/dir2/mask.png
+    Output:
+        Saves a mask in local
+    Returns:
+        Mask
     '''
     ## creating blank mask
     mask = np.zeros(image.shape[:2], dtype='uint8')
 
     ## marking poly-area in mask
     poly_pt_format = Polygons(poly).style_points
-    cv2.fillPoly(mask, poly_pt_format, color=255)
+    cv2.fillPoly(mask, poly_pt_format, color=255 if transparent_mask else category_fill_value)
 
     ## creating transparent mask if asked
     if transparent_mask:
         mask = cv2.bitwise_and(image, image, mask=mask)
 
-    return mask
+    ## saving mask
+    if save_path is not None:
+        save_mask(save_path, mask)
 
+    return mask
 
 '''
 mask = create_mask(image, poly, transparent_mask=True)
 aml.viewImage(mask)
 '''
+
+
+def save_mask(save_path, mask):
+    '''
+    Desc:
+        save_path: (SAVE USING THIS FUNCTION ONLY ELSE MASK VALUE CHANGES)
+                "png" is mandatory else some error is observed
+                eg. dir1/dir2/mask.png
+        png is needed as the extension
+    '''
+    if save_path is None or save_path.split('.')[-1].lower() != 'png':
+        raise Exception('Error: Saving mask as only png is supported.')
+
+    # Ensure directory exists
+    dir_path = os.path.dirname(save_path)
+    if dir_path:
+        os.makedirs(dir_path, exist_ok=True)
+
+    cv2.imwrite(save_path, mask, [cv2.IMWRITE_PNG_COMPRESSION, 0])
