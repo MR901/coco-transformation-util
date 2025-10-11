@@ -1,25 +1,25 @@
 
 import os
-if os.getcwd().split('/')[-1] == 'samples':
-    os.chdir('../')
-elif os.getcwd().split('/')[-1] == 'coco-transform-util':
-    pass
-print('Current Working Dir for the Code:', os.getcwd())
-
+from pathlib import Path
 import cv2
-import glob
-import json
 import random
 import ctu
 
 def run():
+    examples_dir = Path(__file__).resolve().parents[1]
+    dataset_dir = examples_dir / 'datasets' / 'mini'
+    coco_path = dataset_dir / 'coco-annotation.json'
 
-    paths = glob.glob('example_data/*.jpg')
-    if len(paths)==0:
-        raise Exception(f'No Image detected in the directory: {os.getcwd()}/example_data/')
-    paths.sort()
+    # collect images recursively
+    image_paths = []
+    for ext in ('*.jpg', '*.jpeg', '*.png'):
+        image_paths.extend((dataset_dir).rglob(ext))
+    image_paths = sorted([str(p) for p in image_paths])
 
-    path = paths[2]#[random.randint(0,len(paths))]
+    if len(image_paths) == 0:
+        raise Exception(f'No images detected in the directory: {dataset_dir}')
+
+    path = image_paths[min(2, len(image_paths)-1)]
 
     ## reading the image
     modif_di = {
@@ -37,7 +37,7 @@ def run():
 
     modif_di = ctu.accept_and_process_modif_di(modif_di)
     img = ctu.get_modif_image(modif_di)
-    anno = ctu.get_modif_coco_annotation(img, coco_path, modif_di)
+    anno = ctu.get_modif_coco_annotation(img, str(coco_path), modif_di)
 
     ctu.Visualize.draw_annotation(
         img,
@@ -52,10 +52,10 @@ def run():
     ## creating a mask
     poly = anno['annotations'][0]['segmentation']
     mask = ctu.create_mask(img, poly, transparent_mask=True)
-    aml.viewImage(mask)
+    # visualize or save as needed
 
     mask = ctu.create_mask(img, poly, transparent_mask=False)
-    aml.viewImage(mask)
+    # visualize or save as needed
     
     
 if __name__=='__main__':

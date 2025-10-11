@@ -13,11 +13,11 @@ sample_modif_step_di = {
     'image_ht_wd': (1500,2000),
     'padding_ht_wd': "eg: None, (0.15,0.15)",
     'padding_color': (10,10,10),
-    'crop_pt1_pt2': 'eg: None, ((0.1,0.1), (0.9,0.9))',
+    'crop_pt1_pt2': "eg: None, ((0.1,0.1), (0.9,0.9))",
 }
 
 def accept_and_process_modif_di(modif_step_di):
-    '''
+    """
     modif_step_di = {
         'image_path': paths[random.randint(0,len(paths)-1)],
         'aspect_ratio': aspect_ratio[random.randint(0,len(aspect_ratio)-1)],
@@ -26,13 +26,13 @@ def accept_and_process_modif_di(modif_step_di):
         'padding_color': (40,40,40),
         'crop_pt1_pt2': crop_pt1_pt2_li[random.randint(0,len(crop_pt1_pt2_li)-1)],
     }
-    '''
+    """
     modif_step_di = deepcopy(modif_step_di)
     ## check for values consistencies
 
     ## process
     if modif_step_di['aspect_ratio'] is None: modif_step_di['image_ht_wd'] = None
-    if modif_step_di['aspect_ratio'] == 'maintain':
+    if modif_step_di['aspect_ratio'] == "maintain":
         # my_dict.pop('key', None)
         modif_step_di['image_ht_wd'] = ('-',modif_step_di['image_ht_wd'][1])
     modif_step_di['img_name'] = modif_step_di['image_path'].split('/')[-1]

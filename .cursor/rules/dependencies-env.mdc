@@ -1,0 +1,28 @@
+---
+description: Dependencies, environment, and compatibility notes for CTU
+---
+
+### Dependencies and Environment
+
+- Pinned versions (see [setup.py](mdc:setup.py)):
+  - `opencv-python-headless==4.5.2.54`
+  - `numpy==1.19.5`
+  - `matplotlib==3.2.0`
+
+- Python compatibility per classifiers in [setup.py](mdc:setup.py):
+  - Python 3.4, 3.5, 3.6 explicitly listed
+
+- Notes
+  - Prefer headless OpenCV for server/CI usage.
+  - If running newer Python, consider testing with updated dep pins locally before changing.
+  - Use virtual environments to isolate runtime.
+
+### Installation
+
+Refer to [README.md](mdc:README.md) for git-based install; example:
+```bash
+git clone https://github.com/MR901/coco-transformation-util.git
+cd coco-transformation-util
+python3 setup.py install
+```
+

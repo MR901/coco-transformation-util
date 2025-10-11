@@ -1,26 +1,28 @@
 
 import os
-if os.getcwd().split('/')[-1] == 'samples':
-    os.chdir('../')
-elif os.getcwd().split('/')[-1] == 'coco-transform-util':
-    pass
-print('Current Working Dir for the Code:', os.getcwd())
-
+from pathlib import Path
 import cv2
-import glob
 import json
 import random
 from ctu import (
-    sample_modif_step_di, accept_and_process_modif_di, 
+    sample_modif_step_di, accept_and_process_modif_di,
     get_modif_image, get_modif_coco_annotation
 )
 from ctu import Visualize, AggreagateCoco
 
 def run():
-    coco_path= 'example_data/coco-annotation.json'
-    paths = [ f for f in glob.glob('example_data/*') if f.split('.')[-1] in ['jpeg', 'png', 'jpg'] ]
-    if len(paths)==0:
-        raise Exception(f'No Image detected in the directory: {os.getcwd()}/example_data/')
+    examples_dir = Path(__file__).resolve().parents[1]
+    dataset_dir = examples_dir / 'datasets' / 'mini'
+    coco_path = dataset_dir / 'coco-annotation.json'
+
+    # gather images recursively
+    image_paths = []
+    for ext in ('*.jpg', '*.jpeg', '*.png'):
+        image_paths.extend((dataset_dir).rglob(ext))
+    image_paths = [str(p) for p in image_paths]
+
+    if len(image_paths) == 0:
+        raise Exception(f'No image detected in the directory: {dataset_dir}')
     
     ## configs
     counter, limit = 0, 5
@@ -48,7 +50,7 @@ def run():
         print(f'Counter: {counter} \n')
         check_di = sample_modif_step_di
 
-        check_di['image_path'] = paths[random.randint(0,len(paths)-1)]
+        check_di['image_path'] = image_paths[random.randint(0, len(image_paths) - 1)]
         check_di['aspect_ratio'] = aspect_ratio[random.randint(0,len(aspect_ratio)-1)]
         check_di['image_ht_wd'] = size_ht_wd_li[random.randint(0,len(size_ht_wd_li)-1)]
         check_di['padding_ht_wd'] = pad_ht_wd_li[random.randint(0,len(pad_ht_wd_li)-1)]
@@ -58,7 +60,7 @@ def run():
         img = get_modif_image(modif_di)
         print('Image Shape: ', img.shape)
 
-        anno = get_modif_coco_annotation(img, coco_path, modif_di)
+        anno = get_modif_coco_annotation(img, str(coco_path), modif_di)
         
         ## Save Image Locally and change the image name in the annotation
         img_new_name = f'./temporary/file_{counter}.jpeg'
