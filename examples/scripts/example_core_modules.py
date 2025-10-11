@@ -15,7 +15,7 @@ def run():
 
     # Collect image paths (supports jpg/jpeg/png) from dataset root and nested folders like images/
     image_paths = []
-    for ext in ('*.jpg', '*.jpeg', '*.png'):
+    for ext in ("*.jpg", "*.jpeg", "*.png"):
         image_paths.extend((dataset_dir).rglob(ext))
 
     if len(image_paths) == 0:
@@ -35,7 +35,7 @@ def run():
     coco_ann_di = WholeCoco2SingleImgCoco(annotation_path=str(coco_path), coco_di=None).run(img_name)
 
     ## draw with annotation
-    print('\nOriginal')
+    print("\nOriginal")
     Visualize.draw_annotation(img, coco_ann_di)
 
 
@@ -51,7 +51,7 @@ def run():
     final_ann_di = CocoRel2CocoSpecificSize().run(rel_coco_di, desired_ht_wd=img.shape[:2])
 
     ## draw with annotation
-    print('\nRescaling image size (With Aspect Ratio)')
+    print("\nRescaling image size (With Aspect Ratio)")
     Visualize.draw_annotation(img, final_ann_di)
 
     # ----------------------------- < Rescaling image size (Without Aspect Ratio)
@@ -68,7 +68,7 @@ def run():
     final_ann_di = CocoRel2CocoSpecificSize().run(rel_coco_di, desired_ht_wd=img.shape[:2])
 
     ## draw with annotation
-    print('\nRescaling image size (Without Aspect Ratio)')
+    print("\nRescaling image size (Without Aspect Ratio)")
     Visualize.draw_annotation(img, final_ann_di)
 
 
@@ -85,11 +85,11 @@ def run():
 
     ## annotaion for the same
     coco_ann_di = WholeCoco2SingleImgCoco(annotation_path=str(coco_path), coco_di=None).run(img_name)
-    rel_coco_di = Coco2CocoRel().run( coco_ann_di, offset='orig_to_pad', rel_padding_ht_wd=padding_htwd )
+    rel_coco_di = Coco2CocoRel().run( coco_ann_di, offset="orig_to_pad", rel_padding_ht_wd=padding_htwd )
     final_ann_di = CocoRel2CocoSpecificSize().run(rel_coco_di, desired_ht_wd=img.shape[:2])
 
     ## draw with annotation
-    print('\nRescaling image size + add padding to the image')
+    print("\nRescaling image size + add padding to the image")
     Visualize.draw_annotation(img, final_ann_di)
 
 
@@ -112,7 +112,7 @@ def run():
     final_ann_di = CocoRel2CocoSpecificSize().run(rel_coco_di, desired_ht_wd=img.shape[:2])
 
     ## draw with annotation
-    print('\nRescaling image size + cropping the imagee & maintaing the annotation')
+    print("\nRescaling image size + cropping the image & maintaining the annotation")
     Visualize.draw_annotation(img, final_ann_di)
 
 
@@ -132,11 +132,11 @@ def run():
 
     ## annotaion for the same
     coco_ann_di = WholeCoco2SingleImgCoco( annotation_path=coco_path, coco_di=None).run(img_name)
-    rel_coco_di = Coco2CocoRel().run( coco_ann_di, offset='orig_to_pad', rel_padding_ht_wd=padding_htwd, rel_crop_pt1_pt2=crop_rel_pt1_pt2 )
+    rel_coco_di = Coco2CocoRel().run( coco_ann_di, offset="orig_to_pad", rel_padding_ht_wd=padding_htwd, rel_crop_pt1_pt2=crop_rel_pt1_pt2 )
     final_ann_di = CocoRel2CocoSpecificSize().run(rel_coco_di, desired_ht_wd=img.shape[:2])
 
     ## draw with annotation
-    print('\nRescaling image size + add padding to the image + cropping the imagee & maintaing the annotation')
+    print("\nRescaling image size + add padding to the image + cropping the imagee & maintaing the annotation")
     Visualize.draw_annotation(img, final_ann_di)
 
     # ----------------------------------------------------------------------------------------------------------- #

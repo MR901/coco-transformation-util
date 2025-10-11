@@ -5,19 +5,19 @@ from copy import deepcopy
 class AggreagateCoco:
 
     def __init__(self, *annotation_li):
-        '''
+        """
         Input:
             either pass multiple coco dictionary as args or list of such dicts
-        '''
+        """
         annotation_li = deepcopy(annotation_li)
         templili = [[e] if isinstance(e,dict) else e for e in annotation_li]
         self.annotation_li = [ee for e in templili for ee in e]
 
     def get_coco_value_categories(self):
-        '''
+        """
         Returns:
-            cat_coco_li: value 
-        '''
+            cat_coco_li: value
+        """
         catalogged_cat_li = []
         for i,idi in enumerate(self.annotation_li):
             for iidi in idi['categories']:
@@ -47,7 +47,7 @@ class AggreagateCoco:
     def generate_imgs_and_annotations_li(
         self, all_category_map_di, if_img_name_match='skip', show_warning=True
     ):
-        '''
+        """
         options:
             all_category_map_di = {
                 'coffee-bean': 1,
@@ -57,7 +57,7 @@ class AggreagateCoco:
                 'orange': 5
             }
             if_img_name_match='skip', 'append'
-        '''
+        """
         ## coco annotation in annotation_li will be rotated index-wise, sort and append that pair to main accordingly
         all_images_li, all_annotations_li = [], []
         all_category_map_di = deepcopy(all_category_map_di)
@@ -78,11 +78,11 @@ class AggreagateCoco:
                 if file_name in img_map_di:
                     if show_warning:
                         print(f'There\'s already a record present for the image with name "{file_name}".')
-                    if if_img_name_match=='append':
+                    if if_img_name_match=="append":
                         file_name = self._generate_suffix(file_name)
                         ## mapping dict
                         img_map_di[file_name] = len(img_map_di)
-                    elif if_img_name_match=='skip':
+                    elif if_img_name_match=="skip":
                         continue  # skip this file
                 else:
                     ## mapping dict
@@ -108,10 +108,10 @@ class AggreagateCoco:
         return all_images_li, all_annotations_li
 
     def run(self, if_img_name_match='skip', show_warning=True):
-        '''
+        """
             if_img_name_match='skip', 'append'
             show_warning: boolean
-        '''
+        """
         agg_coco_di = {}
         agg_coco_di['info'] = {'description': 'agg-coco-data'}
         agg_coco_di['categories'], all_cat_rev_di = self.get_coco_value_categories()
@@ -121,11 +121,11 @@ class AggreagateCoco:
         return agg_coco_di
 
 
-'''
+"""
 agg_coco_di = AggreagateCoco(annotation_li).run(if_img_name_match='skip')
 # agg_coco_di = AggreagateCoco(annotation_li).run(if_img_name_match='append')
 
 print('#images :', len(agg_coco_di['images']))
 print('#annotation :', len(agg_coco_di['annotations']))
 
-'''
+"""

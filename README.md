@@ -1,4 +1,13 @@
-# coco-transformation-util
+<div align="center">
+
+<h1>CTU - COCO Transformation Util</h1>
+
+[![PyPI version](https://badge.fury.io/py/syinfo.svg)](https://badge.fury.io/py/ctu) [![PyPI Downloads](https://static.pepy.tech/personalized-badge/ctu?period=total&units=NONE&left_color=GRAY&right_color=BRIGHTGREEN&left_text=downloads)](https://pepy.tech/projects/mcp-plots) [![Python versions](https://img.shields.io/pypi/pyversions/ctu.svg)](https://pypi.org/project/ctu/)
+
+</div>
+
+<br>
+
 A python package to perform same transformation to coco-annotation as performed on the image.
 
 

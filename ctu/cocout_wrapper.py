@@ -54,7 +54,7 @@ def get_modif_image(modif_step_di):
 
     ## 2. Size change
     if c_di['image_ht_wd'] is not None:
-        if c_di['aspect_ratio']=='maintain':
+        if c_di['aspect_ratio']=="maintain":
             img = ImgTransform.resize_with_aspect_ratio(
                 img, width=c_di['image_ht_wd'][1])
         else:
@@ -75,8 +75,8 @@ def get_modif_image(modif_step_di):
 
 
 def get_modif_coco_annotation(img, coco_path, modif_step_di):
-    '''
-    '''
+    """
+    """
     c_di = modif_step_di
 
     ## 1. Get this Annotation from local
@@ -90,7 +90,7 @@ def get_modif_coco_annotation(img, coco_path, modif_step_di):
     ## 2. Modify Invariant Annotation
     rel_coco_di = Coco2CocoRel().run(
         coco_ann_di,
-        offset=('orig_to_pad' if c_di['padding_ht_wd'] is not None else None),
+        offset=("orig_to_pad" if c_di['padding_ht_wd'] is not None else None),
         rel_padding_ht_wd=c_di['padding_ht_wd'],
         rel_crop_pt1_pt2=c_di['crop_pt1_pt2']
     )

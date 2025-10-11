@@ -4,9 +4,9 @@ from ctu.cocout01_slicer import WholeCoco2SingleImgCoco
 
 
 class Coco2CocoRel:
-    ''' Convert General Coco annotation to relative coordinate 
+    """ Convert General Coco annotation to relative coordinate
     "area" is droppd in this format.
-    '''
+    """
 
     def __init__(self, msg=False):
         self.msg = msg
@@ -16,12 +16,12 @@ class Coco2CocoRel:
         return index%2==0
 
     def _gen_relative_coordinate_li(self, coordinate_li, img_width, img_height):
-        '''
+        """
         coordinate_li: [3386.5929339477707, 1049.7572964669732, 97.52380952380963, 1049.1674347158212]
         to relative: [0.7349377026796378, 0.3037492177277122, 0.021164021164021187, 0.30357854013767976]
-        '''
+        """
         if (len(coordinate_li)>1) and (max(coordinate_li)<=1):
-            print('Data is already scaled to relative dimensions')
+            print("Data is already scaled to relative dimensions")
             return coordinate_li
         return [
             coordinate/img_width if self._is_x_coord(i) else coordinate/img_height
@@ -29,13 +29,13 @@ class Coco2CocoRel:
         ]
 
     def _transform_one_image_info(self, image_info):
-        ''' works on a element '''
+        """ works on a element """
         image_info['orig_width'] = image_info['width']
         image_info['orig_height'] = image_info['height']
         return image_info
 
     def _transform_one_annotation(self, image_info, anno_info):
-        ''' works on a element '''
+        """ works on a element """
         img_wd, img_ht = image_info['width'], image_info['height']
         # print(anno_info.keys())
         anno_info['segmentation'] = [self._gen_relative_coordinate_li(anno, img_wd, img_ht)
@@ -50,7 +50,7 @@ class Coco2CocoRel:
     def gen_coco_rel_anno(self, coco_ann_di):
         ''' '''
         if self.msg:
-            print('Following keys are present in coco annotation:', list(coco_ann_di.keys()))
+            print("Following keys are present in coco annotation:", list(coco_ann_di.keys()))
             print('Note: "area" will been dropped from "annotations" as it hasn\'t been converted to relative measure')
 
         for i,k in enumerate(coco_ann_di['annotations']):
@@ -119,7 +119,7 @@ class Coco2CocoRel:
             Output: (0.5, 0.5)
         '''
         if ((old_rel_x is None) and (old_rel_y is None)):
-            raise Exception('Both the "old_rel_x" and "old_rel_y" can\'t be None')
+            raise Exception("Both the `old_rel_x` and `old_rel_y` can't be None")
         pady, padx = rel_padding_ht_wd
         ## calculating the new rel_x after padding was added based on previous rel_x
         rx = ((padx + old_rel_x) / (1+2*padx)) if old_rel_x is not None else None
@@ -165,7 +165,7 @@ class Coco2CocoRel:
             Output: (0.5, 0.5)
         '''
         if ((pad_rel_x is None) and (pad_rel_y is None)):
-            raise Exception('Both the "pad_rel_x" and "pad_rel_y" can\'t be None')
+            raise Exception("Both the `pad_rel_x` and `pad_rel_y` can't be None")
         pady, padx = rel_padding_ht_wd
 
         ## calculating the very old rel_x before padding was added based on the rel_x from the padded img
@@ -192,14 +192,14 @@ class Coco2CocoRel:
         o2p = self.convert_coord_from_orig_to_pad_addition
         p2o = self.convert_coord_from_pad_to_orig
 
-        if offset in ['orig_to_pad', 'pad_to_orig']:
+        if offset in ["orig_to_pad", "pad_to_orig"]:
 
             ## converting segmentation while preserving polygon structure
             new_seg = []
             for poly in anno_info['segmentation']:
                 new_poly = []
                 for i, e in enumerate(poly):
-                    if offset == 'pad_to_orig':
+                    if offset == "pad_to_orig":
                         val = p2o(
                             pad_rel_x=(e if self._is_x_coord(i) else None),
                             pad_rel_y=(None if self._is_x_coord(i) else e),
@@ -221,7 +221,7 @@ class Coco2CocoRel:
                     pad_rel_x=(e if self._is_x_coord(i) else None),
                     pad_rel_y=(None if self._is_x_coord(i) else e),
                     rel_padding_ht_wd=rel_padding_ht_wd
-                ) if offset=='pad_to_orig' else o2p(
+                ) if offset=="pad_to_orig" else o2p(
                     old_rel_x=(e if self._is_x_coord(i) else None),
                     old_rel_y=(None if self._is_x_coord(i) else e),
                     rel_padding_ht_wd=rel_padding_ht_wd
@@ -230,7 +230,7 @@ class Coco2CocoRel:
             ]
 
         else:
-            raise Exception('Unacceptatble value for "offset"')
+            raise Exception("Unacceptable value for `offset`")
 
         return anno_info
 
@@ -327,7 +327,7 @@ class Coco2CocoRel:
                 anno_info['bbox'], rel_crop_pt1_pt2)
 
         else:
-            raise Exception('"rel_crop_pt1_pt2" is None')
+            raise Exception("`rel_crop_pt1_pt2` is None")
 
         return anno_info
 
@@ -396,10 +396,10 @@ class Coco2CocoRel:
             coco_di
             offset:
                 None (Just Perform Annotation conversion to relative)
-                'orig_to_pad' (convert annotaion from Original based to padding)
-                'pad_to_orig' (convert annotaion from padding based to original)
+                'orig_to_pad' (convert annotation from Original based to padding)
+                'pad_to_orig' (convert annotation from padding based to original)
             rel_padding_ht_wd
-                What paddign was used
+                What padding was used
             rel_crop_pt1_pt2=((0.1,0.1), (0.9,0.9))
         '''
         coco_ann_di = coco_di if inplace else deepcopy(coco_di)
@@ -409,7 +409,7 @@ class Coco2CocoRel:
         ## related to padding
         if offset is not None:
             if rel_padding_ht_wd is None:
-                raise Exception('Relative padding size can\'t be "None" when transforming b/c of padding')
+                raise Exception("Relative padding size can't be `None` when transforming b/c of padding")
 
             coco_rel_anno = self.offset_whole_coco_annotation(
                 coco_rel_anno, offset=offset, rel_padding_ht_wd=rel_padding_ht_wd

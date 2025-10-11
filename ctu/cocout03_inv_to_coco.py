@@ -4,21 +4,21 @@ from ctu.cocout00_utils import Polygons
 
 
 class CocoRel2CocoSpecificSize:
-    '''relative to coordinate system'''
+    """relative to coordinate system"""
 
     ## area calculation
     def _anno_area(self, img_ht_wd, segmentation=None, bbox=None):
-        '''
+        """
         Adding Area
         if both segmentation and bbox is provided then segmentation is given higher priority.
-        '''
+        """
         if segmentation is not None:
             polygon = segmentation
         elif bbox is not None:
             x1, x2, y1, y2 = [bbox[0], bbox[0]+bbox[2], bbox[1], bbox[1]+bbox[3]]
             polygon = [[x1, y1, x1, y2, x2, y2, x2, y1]]
         else:
-            raise Exception('Not Possible to calculate')
+            raise Exception("Not Possible to calculate")
 
         pol = Polygons.create(polygon)
         mask = pol.proj_to_mask(width=img_ht_wd[1], height=img_ht_wd[0])
@@ -29,7 +29,7 @@ class CocoRel2CocoSpecificSize:
         return index%2==0
 
     def _transform_one_image_info(self, image_info, desired_ht_wd):
-        ''' works on a element '''
+        """ works on a element """
         image_info['height'], image_info['width'] = desired_ht_wd
         return image_info
 
@@ -74,7 +74,7 @@ class CocoRel2CocoSpecificSize:
             ]
 
     def _transform_one_annotation(self, anno_info, desired_ht_wd, crop_out_of_frame):
-        ''' works on a element '''
+        """ works on a element """
         img_ht, img_wd = desired_ht_wd
 
         anno_info['segmentation'] = [self._gen_abs_coordinate_li(anno, img_wd, img_ht, crop_out_of_frame)

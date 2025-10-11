@@ -4,11 +4,11 @@ from copy import deepcopy
 
 
 class WholeCoco2SingleImgCoco:
-    '''
+    """
     Accepts both coco and coco relative annotation
     Coco Annotation Slicer: Works Coco with Relative Annotation too
     Create coco annotation per image wise. Lookup will be based on index
-    '''
+    """
     @classmethod
     def read_annotation(cls, annotation_path):
         with open(annotation_path, 'r') as file:
@@ -16,9 +16,9 @@ class WholeCoco2SingleImgCoco:
         return coco_ann_di
 
     def __init__(self, annotation_path=None, coco_di=None, inplace=False, msg=False):
-        '''
-        Precedance to "annotation_path" is given
-        '''
+        """
+        Precedence to "annotation_path" is given
+        """
         self.msg = msg
 
         ## Read Annotation File
@@ -30,15 +30,15 @@ class WholeCoco2SingleImgCoco:
             self.coco_ann_di = coco_di if inplace else deepcopy(coco_di)
 
     def run(self, img_index_or_name, index_type='general_index'):
-        '''
+        """
         Input:
             img_index_or_name: identifier to look for image
                 if integer then work as index
                 if string then work as image name
-            index_type: 'coco_image_id' or 'general_index'
+            index_type: "coco_image_id" or "general_index"
         Return:
-            Single imagee coco annotation
-        '''
+            Single image coco annotation
+        """
         ## get whole coco di
         cdi = self.coco_ann_di
 
@@ -50,8 +50,8 @@ class WholeCoco2SingleImgCoco:
                 if len(im_matching_ind)>1: 
                     print('Trying to locate:', img_index_or_name)
                     print('Matched Index:', im_matching_ind)
-                    raise Exception('[Err1a] 2 or more images share the image name.'
-                                    ' Check your annotation')
+                    raise Exception("[Err1a] 2 or more images share the image name."
+                                    " Check your annotation")
                 elif len(im_matching_ind)==0:
                     print('No Matching Index for image_name:', img_index_or_name)
                     return None
@@ -61,14 +61,14 @@ class WholeCoco2SingleImgCoco:
                 index = img_index_or_name
 
                 ## Index based lookup
-                if index_type=='coco_image_id':
+                if index_type=="coco_image_id":
                     img_id = index
                     im_matching_ind = [i for i,e in enumerate(cdi['images']) if e['id']==img_id]
                     if len(im_matching_ind)>1:
                         print('Trying to locate:', img_id)
                         print('Matched Index:', im_matching_ind)
-                        raise Exception('[Err2a] 2 or more images share the image index.'
-                                        ' Check your annotation')
+                        raise Exception("[Err2a] 2 or more images share the image index."
+                                        " Check your annotation")
                     elif len(im_matching_ind)==0:
                         print('No Matching Index for image_id:', img_id)
                         return None
@@ -77,8 +77,8 @@ class WholeCoco2SingleImgCoco:
                     im_matching_ind = index
                     img_id = cdi['images'][index]['id']
         else:
-            raise Exception('Either Image name or index in coco["images"] list or '
-                  'ID of image in coco["images"] needs to be provided')
+            raise Exception("Either Image name or index in coco[`images`] list or "
+                  "ID of image in coco[`images`] needs to be provided")
 
         ## getting matching annotation for this image
         anno_matching_ind = [i for i,e in enumerate(cdi['annotations']) if e['image_id']==img_id ]
@@ -93,7 +93,7 @@ class WholeCoco2SingleImgCoco:
         return indi_di
 
 
-''' ## Sample Code
+""" ## Sample Code
 coco_path= 'data/input/Annotations/coco-labels_wt-estimation-carrot-orange-potato.json'
 
 ## Reading whole annotation from a path
@@ -128,5 +128,5 @@ rel_coco_di = Coco2CocoRel().run(whole_anno_di)
 # print(rel_coco_di)
 single_coco_di = WholeCoco2SingleImgCoco(coco_di=rel_coco_di).run(0)
 print(single_coco_di)
-# '''
+# """
 

@@ -17,7 +17,7 @@ def run():
 
     # gather images recursively
     image_paths = []
-    for ext in ('*.jpg', '*.jpeg', '*.png'):
+    for ext in ("*.jpg", "*.jpeg", "*.png"):
         image_paths.extend((dataset_dir).rglob(ext))
     image_paths = [str(p) for p in image_paths]
 
@@ -26,7 +26,7 @@ def run():
     
     ## configs
     counter, limit = 0, 5
-    aspect_ratio = [ None, 'maintain', 'dont maintain']  # None = original
+    aspect_ratio = [ None, "maintain", "dont maintain"]  # None = original
     size_ht_wd_li = [ (500,500), (1000,3000), (3000,1000) ]  # when aspect ratio is to be maintain, only width will be considered
     pad_ht_wd_li = [ None, (0.15,0.15), (0.5,0.1), (0.1,0.5) ]
     crop_pt1_pt2_li = [ None, ((0.5,0.0), (1.0,0.75)), ((0.0,0.0), (1.0,0.5)) ]
@@ -34,11 +34,11 @@ def run():
 
     
     cls_mapper_di = {
-        '1':'coffee-bean',
-        '2':'tea-seed',
-        '3':'mango',
-        '4':'lemon',
-        '5':'orange'
+        "1":"coffee-bean",
+        "2":"tea-seed",
+        "3":"mango",
+        "4":"lemon",
+        "5":"orange"
     } if same_color_for_class else None
     
     temp_dir = './temporary/'
@@ -75,14 +75,14 @@ def run():
 
         annotation_li.append(anno)  # new
         
-        Visualize.draw_annotation(img, anno, cls_mapper_di=cls_mapper_di, draw_what=['polyline', 'mask'])
+        Visualize.draw_annotation(img, anno, cls_mapper_di=cls_mapper_di, draw_what=["polyline", "mask"])
 
         counter += 1
     
     ## Aggregate Coco Annotations
     print('# of Individual Annotations: ', len(annotation_li))
     print('Aggregating Individual Annotations....')
-    agg_coco_di = AggreagateCoco(annotation_li).run(if_img_name_match='append', show_warning='True')
+    agg_coco_di = AggreagateCoco(annotation_li).run(if_img_name_match="append", show_warning="True")
     print('.... Complete !!!')
     print('# of Images in aggregated Anno:', len(agg_coco_di['images']))
     print('# of Annotation in aggregated Anno:', len(agg_coco_di['annotations']))

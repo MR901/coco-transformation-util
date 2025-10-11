@@ -6,13 +6,13 @@ import matplotlib.pyplot as plt
 
 
 class ImgTransform:
-    '''
+    """
     Some Basic Image Transformation utilities
-    '''
+    """
 
     @staticmethod
     def resize_with_aspect_ratio(frame, width=None, height=None, inter=cv2.INTER_AREA):
-        '''
+        """
         Desc: Resize the Image while maintaining the aspect ratio of it
               cv2.resize(image, (0, 0), None, .25, .25)
         Input:
@@ -22,7 +22,7 @@ class ImgTransform:
             height: final desired height
         Output:
             Return Image
-        '''
+        """
         dim = None
         (h, w) = frame.shape[:2]
 
@@ -39,7 +39,7 @@ class ImgTransform:
 
     @staticmethod
     def add_relative_padding_to_image(img, rel_padding_ht_wd=(0.15,0.15), pad_color=(10,10,10)):
-        '''
+        """
         Desc: Image will be kept at the center and equivalent size of padding will be
               added on two sides
               Add padding of pad_x*im_x_size on each side(x dir) of the image.
@@ -61,7 +61,7 @@ class ImgTransform:
             pad_color: padding color
         Output:
             Returns New Frame
-        '''
+        """
         scht, scwd = img.shape[:2]
         extra_x, extra_y = int(scht*rel_padding_ht_wd[0]), int(scwd*rel_padding_ht_wd[1])
         top, bottom = extra_x, extra_x
@@ -73,7 +73,7 @@ class ImgTransform:
 
     @staticmethod
     def relative_size_based_crop(img, rel_pt1=None, rel_pt2=None):
-        '''
+        """
         Desc:
             pt1 == a == (x1,y1); pt2 == c == (x2,y2)
                 a ___________ b
@@ -89,7 +89,7 @@ class ImgTransform:
                      Eg. None, (0.9,0.9) # None Means (1.0,1.0)
         Output:
             Return Image
-        '''
+        """
         if rel_pt1 is None:
             rel_pt1 = (0.0, 0.0)
         if rel_pt2 is None:
@@ -105,7 +105,7 @@ class ImgTransform:
         y2 = min(max(y2, 0.0), 1.0)
 
         if x2 <= x1 or y2 <= y1:
-            raise ValueError('Invalid crop: rel_pt2 must be strictly greater than rel_pt1')
+            raise ValueError("Invalid crop: rel_pt2 must be strictly greater than rel_pt1")
 
         ht, wd = img.shape[:2]
         x1p, y1p = int(wd * x1), int(ht * y1)
@@ -116,26 +116,26 @@ class ImgTransform:
 # -------------------------------------------------------------------------------------------------------- #
 
 class BBox:
-    '''
-    Bounding Box is an enclosing retangular box for a image marking
-    '''
+    """
+    Bounding Box is an enclosing rectangular box for a image marking
+    """
     _c_polygons = None
 
     ## Value types of :class:`BBox`
     INSTANCE_TYPES = (np.ndarray, list, tuple)
     ## Bounding box format style [x1, y1, x2, y2]
-    STYLE_MIN_MAX = 'minmax'
+    STYLE_MIN_MAX = "minmax"
     ## Bounding box format style [x1, y1, width, height]
-    STYLE_WIDTH_HEIGHT = 'widthheight'
+    STYLE_WIDTH_HEIGHT = "widthheight"
 
     def __init__(self, bbox, style=None):
-        '''
+        """
         Input:
             bbox: a array or list of length 4 or class (np.ndarray, list, tuple)
             style:
                 option: 'minmax' format style [x1, y1, x2, y2]
                 option: 'widthheight' format style [x1, y1, width, height]
-        '''
+        """
         assert len(bbox) == 4
         self.style = style if style else BBox.STYLE_MIN_MAX  # None == False
 
@@ -154,22 +154,22 @@ class BBox:
 
     @property
     def min_point(self):
-        ''' Minimum points of the bounding box (x1, y1) '''
+        """ Minimum points of the bounding box (x1, y1) """
         return self._xmin, self._ymin
 
     @property
     def max_point(self):
-        ''' Maximum points of the bounding box (x2, y2) '''
+        """ Maximum points of the bounding box (x2, y2) """
         return self._xmax, self._ymax
 
     def draw(self, image, color=None, thickness=2):
-        '''
+        """
         Desc: Draws a bounding box to the image array of shape (width, height, 3)
               *This function modifies the image array*
         Input:
             color: RGB color repersentation (tuple, list)
             thickness: pixel thickness of box (int)
-        '''
+        """
         if color is None: color = Visualize()._random_rgb_color()
         image_copy = image.copy()
         cv2.rectangle(image_copy, self.min_point, self.max_point, color=color, thickness=thickness)
@@ -192,14 +192,14 @@ class Polygons:
 
     @property
     def style_points(self):
-        '''
+        """
         Returns polygon in point format:
             [
                 [[x1, y1], [x2, y2], [x3, y3], ...],
                 [[x1, y1], [x2, y2], [x3, y3], ...],
                 ...
             ]
-        '''
+        """
         if not self._c_points:
             self._c_points = [
                 np.array(point).reshape(-1, 2).round().astype(int)
@@ -208,14 +208,14 @@ class Polygons:
 
     @property
     def style_segmentation(self):
-        '''
+        """
         Returns polygon in segmentation format:
             [
                 [x1, y1, x2, y2, x3, y3, ...],
                 [x1, y1, x2, y2, x3, y3, ...],
                 ...
             ]
-        '''
+        """
         if not self._c_segmentation:
             self._c_segmentation = [polygon.tolist() for polygon in self.polygons]
         return self._c_segmentation
@@ -229,11 +229,11 @@ class Polygons:
         return None
 
     def proj_to_bbox(self):
-        '''
+        """
         Desc: Returns or generates `BBox` class representation of polygons.
         Return:
             `BBox` class repersentation
-        '''
+        """
         if not self._c_bbox:
 
             y_min = x_min = float('inf')
@@ -254,11 +254,11 @@ class Polygons:
         return self._c_bbox
 
     def proj_to_mask(self, width=None, height=None):
-        '''
+        """
         Desc: Returns or generates `Mask` class representation of polygons.
         Retun:
-            `Mask` class repersentation
-        '''
+            `Mask` class representation
+        """
         if not self._c_mask:
             # Determine target size as (height, width)
             if height is None or width is None:
@@ -276,13 +276,13 @@ class Polygons:
         return self._c_mask
 
     def draw(self, image, color=None, thickness=3):
-        '''
+        """
         Desc: Draws the polygons to the image array of shape (width, height, 3)
               *This function modifies the image array*
         Inputs:
-            color: RGB color repersentation (type: tuple, list)
+            color: RGB color representation (type: tuple, list)
             thickness: pixel thickness of box (type: int)
-        '''
+        """
         if color is None:
             color = Visualize()._random_rgb_color()
         image_copy = image.copy()
@@ -291,7 +291,7 @@ class Polygons:
 
 
 class Mask:
-    ''' Mask class '''
+    """ Mask class """
     _c_polygons = None
 
     INSTANCE_TYPES = (np.ndarray,)
@@ -303,7 +303,7 @@ class Mask:
         return self.array.sum()
 
     def draw(self, image, color=None, alpha=0.5):
-        '''
+        """
         Draws current mask to the image array of shape (width, height, 3)
 
         This function modifies the image array
@@ -312,7 +312,7 @@ class Mask:
                    type color: tuple, list
             alpha: opacity of mask
                    type alpha: float
-        '''
+        """
         if color is None: color = Visualize()._random_rgb_color()
         image_copy = image.copy()
         for c in range(3):
@@ -337,11 +337,11 @@ class ColorRandom:
 
 
 class Visualize:
-    '''
-    '''
+    """
+    """
 
     def _view_img_using_matplot(self, image, title=None, figure_size=(6, 3)):
-        ''' matplot based image view '''
+        """ matplot based image view """
         img = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         fig = plt.figure(figsize=figure_size, dpi=150)  # no visible frame
         if title is not None: plt.title(title)
@@ -351,7 +351,7 @@ class Visualize:
     @staticmethod
     def draw_annotation(img, coco_ann_di=None, cls_mapper_di=None,
                         draw_what=['bbox', 'polyline', 'mask'], thickness=10):
-        '''
+        """
         Desc: Draw the annotation on Image
 
             draw_what = ['polyline', 'bbox', 'mask' ]
@@ -361,7 +361,7 @@ class Visualize:
                 '2': 'carrot',
                 '3': 'potato'
             }
-        '''
+        """
         draw_im = img.copy()
         color_di = {}
 
@@ -383,14 +383,14 @@ class Visualize:
 
                 ## draw what ever is asked
                 pol = Polygons.create(ann['segmentation'])
-                if 'bbox' in draw_what:
+                if "bbox" in draw_what:
                     bb = pol.proj_to_bbox()
                     draw_im = bb.draw(image=draw_im, color=color, thickness=thickness)
 
-                if 'polyline' in draw_what:
+                if "polyline" in draw_what:
                     draw_im = pol.draw(image=draw_im, color=color, thickness=thickness)
 
-                if 'mask' in draw_what:
+                if "mask" in draw_what:
                     msk = pol.proj_to_mask(width=img.shape[1], height=img.shape[0])
                     # mask_as_array = msk.array
                     draw_im = msk.draw(image=draw_im, color=color)
@@ -406,7 +406,7 @@ Visualize().draw_annotation(img)
 
 
 def create_mask(image, poly, category_fill_value=1, transparent_mask=True, save_path=None):
-    '''
+    """
     a mask is the same size as our image, but has only two pixel
     values, 0 and 255 -- pixels with a value of 0 (background) are
     ignored in the original image while mask pixels with a value of
@@ -427,7 +427,7 @@ def create_mask(image, poly, category_fill_value=1, transparent_mask=True, save_
         Saves a mask in local
     Returns:
         Mask
-    '''
+    """
     ## creating blank mask
     mask = np.zeros(image.shape[:2], dtype='uint8')
 
@@ -452,15 +452,15 @@ aml.viewImage(mask)
 
 
 def save_mask(save_path, mask):
-    '''
+    """
     Desc:
         save_path: (SAVE USING THIS FUNCTION ONLY ELSE MASK VALUE CHANGES)
                 "png" is mandatory else some error is observed
                 eg. dir1/dir2/mask.png
         png is needed as the extension
-    '''
+    """
     if save_path is None or save_path.split('.')[-1].lower() != 'png':
-        raise Exception('Error: Saving mask as only png is supported.')
+        raise Exception("Error: Saving mask as only png is supported.")
 
     # Ensure directory exists
     dir_path = os.path.dirname(save_path)

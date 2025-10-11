@@ -12,7 +12,7 @@ def run():
 
     # collect images recursively
     image_paths = []
-    for ext in ('*.jpg', '*.jpeg', '*.png'):
+    for ext in ("*.jpg", "*.jpeg", "*.png"):
         image_paths.extend((dataset_dir).rglob(ext))
     image_paths = sorted([str(p) for p in image_paths])
 
@@ -24,14 +24,14 @@ def run():
     ## reading the image
     modif_di = {
         'image_path': path,
-        'aspect_ratio': 'dont maintain',
+        "aspect_ratio": "dont maintain",
         # "options: None, 'maintain', 'dont maintain'",
-        'image_ht_wd': (1000, 1500),
+        "image_ht_wd": (1000, 1500),
         # (1500, 2000),
-        'padding_ht_wd': None,# (0.15,0.15),
+        "padding_ht_wd": None,# (0.15,0.15),
         # 'eg: None, (0.15,0.15)',
-        'padding_color': (10, 10, 10),
-        'crop_pt1_pt2': ((0.25,0.25), (0.75,0.75)),
+        "padding_color": (10, 10, 10),
+        "crop_pt1_pt2": ((0.25,0.25), (0.75,0.75)),
         # 'eg: None, ((0.1,0.1), (0.9,0.9))'
     }
 
@@ -43,7 +43,7 @@ def run():
         img,
         coco_ann_di=anno,
         cls_mapper_di=None,
-        draw_what=['mask'], # 'bbox', 'polyline', 
+        draw_what=["mask"], # 'bbox', 'polyline', 
         thickness=10
     )
 
