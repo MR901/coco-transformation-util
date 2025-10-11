@@ -3,7 +3,7 @@ globs: *.py
 description: Python code style and safety tips tailored for CTU
 ---
 
-### Python Guidelines for CTU
+## Python Guidelines for CTU
 
 - Prefer explicit, descriptive names; avoid 1–2 letter identifiers.
 - Guard clauses over deep nesting; avoid unnecessary try/except blocks.

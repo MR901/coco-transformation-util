@@ -3,7 +3,7 @@ alwaysApply: true
 description: High-level map of CTU project structure and key entry points
 ---
 
-### CTU Project Structure Guide
+## CTU Project Structure Guide
 
 - Main package entrypoint: [ctu/__init__.py](mdc:ctu/__init__.py)
   - Exposes public API imports (wrappers and core modules)
@@ -26,7 +26,7 @@ description: High-level map of CTU project structure and key entry points
   - [examples/Demo-SampleOutput.html](mdc:examples/Demo-SampleOutput.html)
   - Sample data: [examples/sample_data/](mdc:examples/sample_data)
 
-### Typical Workflow (at a glance)
+## Typical Workflow (at a glance)
 1. Build a modification spec using wrapper defaults: `sample_modif_step_di`
 2. Produce transformed image: `get_modif_image(modif_step_di)`
 3. Update COCO for the transformed image: `get_modif_coco_annotation(img, coco_path, modif_step_di)`

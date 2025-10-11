@@ -121,11 +121,11 @@ class BBox:
     """
     _c_polygons = None
 
-    ## Value types of :class:`BBox`
+    # Value types of :class:`BBox`
     INSTANCE_TYPES = (np.ndarray, list, tuple)
-    ## Bounding box format style [x1, y1, x2, y2]
+    # Bounding box format style [x1, y1, x2, y2]
     STYLE_MIN_MAX = "minmax"
-    ## Bounding box format style [x1, y1, width, height]
+    # Bounding box format style [x1, y1, width, height]
     STYLE_WIDTH_HEIGHT = "widthheight"
 
     def __init__(self, bbox, style=None):
@@ -133,8 +133,8 @@ class BBox:
         Input:
             bbox: a array or list of length 4 or class (np.ndarray, list, tuple)
             style:
-                option: 'minmax' format style [x1, y1, x2, y2]
-                option: 'widthheight' format style [x1, y1, width, height]
+                option: "minmax" format style [x1, y1, x2, y2]
+                option: "widthheight" format style [x1, y1, width, height]
         """
         assert len(bbox) == 4
         self.style = style if style else BBox.STYLE_MIN_MAX  # None == False
@@ -236,8 +236,8 @@ class Polygons:
         """
         if not self._c_bbox:
 
-            y_min = x_min = float('inf')
-            y_max = x_max = float('-inf')
+            y_min = x_min = float("inf")
+            y_max = x_max = float("-inf")
 
             for point_list in self.style_points:
                 minx, miny = np.min(point_list, axis=0)
@@ -308,7 +308,7 @@ class Mask:
 
         This function modifies the image array
         Inputs:
-            color: RGB color repersentation
+            color: RGB color representation
                    type color: tuple, list
             alpha: opacity of mask
                    type alpha: float
@@ -350,39 +350,39 @@ class Visualize:
 
     @staticmethod
     def draw_annotation(img, coco_ann_di=None, cls_mapper_di=None,
-                        draw_what=['bbox', 'polyline', 'mask'], thickness=10):
+                        draw_what=["bbox", "polyline", "mask"], thickness=10):
         """
         Desc: Draw the annotation on Image
 
-            draw_what = ['polyline', 'bbox', 'mask' ]
+            draw_what = ["polyline", "bbox", "mask"]
             cls_mapper_di = {
-                '0': 'reference_object',
-                '1': 'orange',
-                '2': 'carrot',
-                '3': 'potato'
+                "0": "reference_object",
+                "1": "orange",
+                "2": "carrot",
+                "3": "potato"
             }
         """
         draw_im = img.copy()
         color_di = {}
 
         if coco_ann_di is not None:
-            for ann in coco_ann_di['annotations']:
+            for ann in coco_ann_di["annotations"]:
 
-                ## assign and get color for the class
+                # assign and get color for the class
                 if cls_mapper_di is None:
                     color = ColorRandom()._rgb
                 else:
-                    cls = str(ann['category_id'])
+                    cls = str(ann["category_id"])
                     color = ColorRandom()._rgb
 
-                    ## if already assigned then pick that color
+                    # if already assigned then pick that color
                     if cls in color_di.keys():
                         color = color_di[cls]
                     else:
                         color_di[cls] = color
 
-                ## draw what ever is asked
-                pol = Polygons.create(ann['segmentation'])
+                # draw what ever is asked
+                pol = Polygons.create(ann["segmentation"])
                 if "bbox" in draw_what:
                     bb = pol.proj_to_bbox()
                     draw_im = bb.draw(image=draw_im, color=color, thickness=thickness)
@@ -395,14 +395,14 @@ class Visualize:
                     # mask_as_array = msk.array
                     draw_im = msk.draw(image=draw_im, color=color)
 
-        ## Show the Image
+        # Show the Image
         Visualize()._view_img_using_matplot(draw_im)
 
-'''
-img = cv2.imread('example_data/Coffee-beans.jpeg')
+"""
+img = cv2.imread("example_data/Coffee-beans.jpeg")
 img = Transform.resize_with_aspect_ratio(img, width=300, height=900)
 Visualize().draw_annotation(img)
-'''
+"""
 
 
 def create_mask(image, poly, category_fill_value=1, transparent_mask=True, save_path=None):
@@ -413,7 +413,7 @@ def create_mask(image, poly, category_fill_value=1, transparent_mask=True, save_
     255 (foreground) are allowed to be kept
     Inputs:
         img: bgr image
-        poly: anno['annotations'][0]['segmentation']; in segmentation format
+        poly: anno["annotations"][0]["segmentation"]; in segmentation format
             poly = [[300.63, 194.93, 324.29, 189.40, 340.06, 189.40, 350.44, 189.40,
                      392.36, 218.17, 399.41, 247.32, 371.61, 285.32, 295.65, 285.69,
                      271.58, 267.24, 266.18, 232.56, 287.35, 201.20]]
@@ -428,27 +428,27 @@ def create_mask(image, poly, category_fill_value=1, transparent_mask=True, save_
     Returns:
         Mask
     """
-    ## creating blank mask
-    mask = np.zeros(image.shape[:2], dtype='uint8')
+    # creating blank mask
+    mask = np.zeros(image.shape[:2], dtype="uint8")
 
-    ## marking poly-area in mask
+    # marking poly-area in mask
     poly_pt_format = Polygons(poly).style_points
     cv2.fillPoly(mask, poly_pt_format, color=255 if transparent_mask else category_fill_value)
 
-    ## creating transparent mask if asked
+    # creating transparent mask if asked
     if transparent_mask:
         mask = cv2.bitwise_and(image, image, mask=mask)
 
-    ## saving mask
+    # saving mask
     if save_path is not None:
         save_mask(save_path, mask)
 
     return mask
 
-'''
+"""
 mask = create_mask(image, poly, transparent_mask=True)
 aml.viewImage(mask)
-'''
+"""
 
 
 def save_mask(save_path, mask):
@@ -459,7 +459,7 @@ def save_mask(save_path, mask):
                 eg. dir1/dir2/mask.png
         png is needed as the extension
     """
-    if save_path is None or save_path.split('.')[-1].lower() != 'png':
+    if save_path is None or save_path.split(".")[-1].lower() != "png":
         raise Exception("Error: Saving mask as only png is supported.")
 
     # Ensure directory exists

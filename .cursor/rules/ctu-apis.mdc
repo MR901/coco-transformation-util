@@ -2,7 +2,7 @@
 description: Quick reference to CTU public API (imports, purpose, and typical usage)
 ---
 
-### CTU Public API Quick Guide
+## CTU Public API Quick Guide
 
 Import from [ctu/__init__.py](mdc:ctu/__init__.py)
 
@@ -19,7 +19,7 @@ Import from [ctu/__init__.py](mdc:ctu/__init__.py)
   - `CocoRel2CocoSpecificSize`
   - `AggreagateCoco`
 
-### Typical snippet
+## Typical snippet
 ```python
 from ctu import sample_modif_step_di, accept_and_process_modif_di, get_modif_image, get_modif_coco_annotation
 

@@ -1,4 +1,4 @@
-## Examples Layout
+# Examples Layout
 
 This folder contains runnable examples, notebooks, and a small sample dataset.
 
@@ -16,7 +16,7 @@ examples/
   outputs/                # generated artifacts (images, html, json)
 ```
 
-## Running the scripts
+# Running the scripts
 
 From the repository root:
 
@@ -28,7 +28,7 @@ python examples/scripts/example_highlevel_function-createmask.py
 
 The scripts auto-resolve paths relative to `examples/datasets/mini`.
 
-## Preparing sample data
+# Preparing sample data
 
 To create your own small dataset under `examples/datasets/mini`:
 
@@ -39,7 +39,7 @@ To create your own small dataset under `examples/datasets/mini`:
    - Structured: put images under `examples/datasets/mini/images/` with any nested folders allowed (e.g., class-wise subfolders)
 3. Ensure that the `file_name` fields in `coco-annotation.json` match the image filenames (e.g., `images/mangoes/mangoes_001.jpg` if using nested paths).
 
-### Minimal example
+## Minimal example
 
 ```
 examples/datasets/mini/
@@ -70,7 +70,7 @@ In `coco-annotation.json -> images[*].file_name`, set values like:
 }
 ```
 
-## Notes
+# Notes
 
 - Scripts will search for `*.jpg|*.jpeg|*.png` recursively under `examples/datasets/mini`.
 - Outputs (images/annotations/HTML) are written to `examples/outputs/` or temporary folders the scripts create.

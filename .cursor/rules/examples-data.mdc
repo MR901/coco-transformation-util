@@ -2,7 +2,7 @@
 description: How to navigate CTU examples, notebooks, and sample data
 ---
 
-### Examples and Data
+## Examples and Data
 
 - Examples directory: [examples/](mdc:examples)
   - Core usage: [examples/example_core_modules.py](mdc:examples/example_core_modules.py)
@@ -14,7 +14,7 @@ description: How to navigate CTU examples, notebooks, and sample data
   - Images: `*.jpeg`, `*.png`
   - COCO annotations: `coco-annotation.json`, `partial-coco-annotation.json`
 
-### Tips
+## Tips
 
 - Adjust paths in examples to your local file locations.
 - Confirm that image names in data match those referenced by COCO annotations.

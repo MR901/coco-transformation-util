@@ -2,7 +2,7 @@
 description: Dependencies, environment, and compatibility notes for CTU
 ---
 
-### Dependencies and Environment
+## Dependencies and Environment
 
 - Pinned versions (see [setup.py](mdc:setup.py)):
   - `opencv-python-headless==4.5.2.54`
@@ -17,7 +17,7 @@ description: Dependencies, environment, and compatibility notes for CTU
   - If running newer Python, consider testing with updated dep pins locally before changing.
   - Use virtual environments to isolate runtime.
 
-### Installation
+## Installation
 
 Refer to [README.md](mdc:README.md) for git-based install; example:
 ```bash
