@@ -55,16 +55,16 @@ print(ctu.__version__)
 ## Core
 There are four core modules inside that helps in performing operations on COCO Annotation. These can imported as shown below:  
 ```python
-from ctu import WholeCoco2SingleImgCoco, Coco2CocoRel, CocoRel2CocoSpecificSize, AggreagateCoco  
-```  
+from ctu import WholeCoco2SingleImgCoco, CocoAbsoluteToRelative, CocoRelativeToAbsolute, CocoAggregator  # AggregateCoco is still available for backward compatibility
+```
 It's recommended that you have look at `samples/example_core_modules.py` to understand and explore how to use these.
   
 ## Wrapper
 Making use of wrappers can also come in handly to perform multiple operations in a much simpler and interpretable manner using the functions provided below:  
 ```python
 from ctu import (
-    sample_modif_step_di, get_modif_imag, get_modif_coco_annotation, 
-    accept_and_process_modif_di, ImgTransform, Visualize
+    modification_spec_template, get_modified_image, get_modified_coco_annotation,
+    normalize_modification_spec, ImageTransform, AnnotationVisualizer
 )
 ```
 It's recommended that you have look at `samples/example_highlevel_function.py` to understand and explore how to use these. 
@@ -80,9 +80,9 @@ A sample HTML created from Jupyter-Notebook, contating some sample results has b
   
 # Version History
 
-- v0.1: Core Modules: `WholeCoco2SingleImgCoco, Coco2CocoRel, CocoRel2CocoSpecificSize`. External Dependency on AMLEET package.
-- v0.2: Removed the dependency on AMLEET package. Develop Core Module: `AggreagateCoco`. Addition of field "area" under "annotations" in coco.
-- v0.3: Completed: Remove the out of frame coordinates in annotation. Update & add fields in "annotation" \> "images". Ability to create transparent and general mask `create_mask`. **In Development:** Ability to export transformed image, mask and annotation per image wise and as a whole too. 
+- v0.1: Core Modules: `WholeCoco2SingleImgCoco, CocoAbsoluteToRelative (prev. Coco2CocoRel), CocoRel2CocoSpecificSize`. External Dependency on AMLEET package.
+- v0.2: Removed the dependency on AMLEET package. Develop Core Module: `AggregateCoco` (now also exported as `CocoAggregator`). Addition of field "area" under "annotations" in coco.
+- v0.3: Completed: Remove the out of frame coordinates in annotation. Update & add fields in "annotation" > "images". Ability to create transparent and general mask `create_mask`. **In Development:** Ability to export transformed image, mask and annotation per image wise and as a whole too. 
 
   
 # Future  

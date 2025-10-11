@@ -3,7 +3,7 @@ import os
 from pathlib import Path
 import cv2
 import random
-from ctu import WholeCoco2SingleImgCoco, Coco2CocoRel, CocoRel2CocoSpecificSize
+from ctu import CocoImageSlicer, CocoAbsoluteToRelative, CocoRelativeToAbsolute
 from ctu import ImgTransform, Visualize
 
 
@@ -32,7 +32,7 @@ def run():
     img = cv2.imread(path)
 
     # annotaion for the same
-    coco_ann_di = WholeCoco2SingleImgCoco(annotation_path=str(coco_path), coco_di=None).run(img_name)
+    coco_ann_di = CocoImageSlicer(annotation_path=str(coco_path), coco_di=None).get_image_annotation(img_name)
 
     # draw with annotation
     print("\nOriginal")
@@ -46,9 +46,9 @@ def run():
     img = ImgTransform.resize_with_aspect_ratio(img, width=1000)
 
     # annotaion for the same
-    coco_ann_di = WholeCoco2SingleImgCoco(annotation_path=str(coco_path), coco_di=None).run(img_name)
-    rel_coco_di = Coco2CocoRel().run( coco_ann_di )
-    final_ann_di = CocoRel2CocoSpecificSize().run(rel_coco_di, desired_ht_wd=img.shape[:2])
+    coco_ann_di = CocoImageSlicer(annotation_path=str(coco_path), coco_di=None).get_image_annotation(img_name)
+    rel_coco_di = CocoAbsoluteToRelative().run( coco_ann_di )
+    final_ann_di = CocoRelativeToAbsolute().run(rel_coco_di, desired_ht_wd=img.shape[:2])
 
     # draw with annotation
     print("\nRescaling image size (With Aspect Ratio)")
@@ -63,9 +63,9 @@ def run():
     img = cv2.resize(img, wd_ht, interpolation = cv2.INTER_AREA)
 
     # annotaion for the same
-    coco_ann_di = WholeCoco2SingleImgCoco(annotation_path=str(coco_path), coco_di=None).run(img_name)
-    rel_coco_di = Coco2CocoRel().run( coco_ann_di )
-    final_ann_di = CocoRel2CocoSpecificSize().run(rel_coco_di, desired_ht_wd=img.shape[:2])
+    coco_ann_di = CocoImageSlicer(annotation_path=str(coco_path), coco_di=None).get_image_annotation(img_name)
+    rel_coco_di = CocoAbsoluteToRelative().run( coco_ann_di )
+    final_ann_di = CocoRelativeToAbsolute().run(rel_coco_di, desired_ht_wd=img.shape[:2])
 
     # draw with annotation
     print("\nRescaling image size (Without Aspect Ratio)")
@@ -84,9 +84,9 @@ def run():
         img, rel_padding_ht_wd=padding_htwd, pad_color=(40,40,40))
 
     # annotaion for the same
-    coco_ann_di = WholeCoco2SingleImgCoco(annotation_path=str(coco_path), coco_di=None).run(img_name)
-    rel_coco_di = Coco2CocoRel().run( coco_ann_di, offset="orig_to_pad", rel_padding_ht_wd=padding_htwd )
-    final_ann_di = CocoRel2CocoSpecificSize().run(rel_coco_di, desired_ht_wd=img.shape[:2])
+    coco_ann_di = CocoImageSlicer(annotation_path=str(coco_path), coco_di=None).get_image_annotation(img_name)
+    rel_coco_di = CocoAbsoluteToRelative().run( coco_ann_di, offset="orig_to_pad", rel_padding_ht_wd=padding_htwd )
+    final_ann_di = CocoRelativeToAbsolute().run(rel_coco_di, desired_ht_wd=img.shape[:2])
 
     # draw with annotation
     print("\nRescaling image size + add padding to the image")
@@ -107,9 +107,9 @@ def run():
         img, rel_pt1=crop_rel_pt1_pt2[0], rel_pt2=crop_rel_pt1_pt2[1])
 
     # annotaion for the same
-    coco_ann_di = WholeCoco2SingleImgCoco(annotation_path=str(coco_path), coco_di=None).run(img_name)
-    rel_coco_di = Coco2CocoRel().run( coco_ann_di, offset=None, rel_crop_pt1_pt2=crop_rel_pt1_pt2 )
-    final_ann_di = CocoRel2CocoSpecificSize().run(rel_coco_di, desired_ht_wd=img.shape[:2])
+    coco_ann_di = CocoImageSlicer(annotation_path=str(coco_path), coco_di=None).get_image_annotation(img_name)
+    rel_coco_di = CocoAbsoluteToRelative().run( coco_ann_di, offset=None, rel_crop_pt1_pt2=crop_rel_pt1_pt2 )
+    final_ann_di = CocoRelativeToAbsolute().run(rel_coco_di, desired_ht_wd=img.shape[:2])
 
     # draw with annotation
     print("\nRescaling image size + cropping the image & maintaining the annotation")
@@ -131,8 +131,8 @@ def run():
         img, rel_pt1=crop_rel_pt1_pt2[0], rel_pt2=crop_rel_pt1_pt2[1])
 
     # annotaion for the same
-    coco_ann_di = WholeCoco2SingleImgCoco( annotation_path=coco_path, coco_di=None).run(img_name)
-    rel_coco_di = Coco2CocoRel().run( coco_ann_di, offset="orig_to_pad", rel_padding_ht_wd=padding_htwd, rel_crop_pt1_pt2=crop_rel_pt1_pt2 )
+    coco_ann_di = CocoImageSlicer( annotation_path=coco_path, coco_di=None).get_image_annotation(img_name)
+    rel_coco_di = CocoAbsoluteToRelative().run( coco_ann_di, offset="orig_to_pad", rel_padding_ht_wd=padding_htwd, rel_crop_pt1_pt2=crop_rel_pt1_pt2 )
     final_ann_di = CocoRel2CocoSpecificSize().run(rel_coco_di, desired_ht_wd=img.shape[:2])
 
     # draw with annotation

@@ -1,38 +1,65 @@
+"""Aggregate multiple COCO annotations into a single dataset.
+
+This module provides a small utility to merge several COCO-style annotation
+dicts into a single annotation dict. It remaps image and annotation IDs,
+builds a unified category list (by category name), and handles duplicate
+image file names either by skipping or by appending a numeric suffix.
+
+Typical usage:
+
+    aggregator = CocoAggregator(annotation_dicts)
+    merged_coco = aggregator.run(if_img_name_match="append", show_warning=True)
+
+Backwards compatibility: the historical class name `AggregateCoco` is kept as
+an alias of `CocoAggregator`.
+"""
+
 import os
 from copy import deepcopy
 
 
-class AggreagateCoco:
+class CocoAggregator:
+    """Merge multiple COCO annotation dicts into one.
 
-    def __init__(self, *annotation_li):
+    The constructor accepts either multiple dict arguments or a single list of
+    dicts. Internally, all inputs are deep-copied to avoid mutating caller data.
+
+    Parameters
+    ----------
+    *annotation_sources: dict | list[dict]
+        One or more COCO annotation dicts, or a list of such dicts.
+    """
+
+    def __init__(self, *annotation_sources):
+        # Normalize inputs to a flat list of dicts and deep copy to make
+        # in-place remapping safe.
+        copied_sources = deepcopy(annotation_sources)
+        normalized_lists = [ [item] if isinstance(item, dict) else item for item in copied_sources ]
+        self.annotation_dicts = [ann for sub in normalized_lists for ann in sub]
+
+    def collect_categories(self):
+        """Build a unified COCO category list and a name-to-id map.
+
+        Returns
+        -------
+        categories_list: list[dict]
+            COCO categories as dicts with fields `id` and `name`.
+        category_name_to_id: dict[str, int]
+            Mapping from category name to its 1-based category id.
         """
-        Input:
-            either pass multiple coco dictionary as args or list of such dicts
-        """
-        annotation_li = deepcopy(annotation_li)
-        templili = [[e] if isinstance(e,dict) else e for e in annotation_li]
-        self.annotation_li = [ee for e in templili for ee in e]
+        unique_category_names = []
+        for ann in self.annotation_dicts:
+            for category in ann["categories"]:
+                cat_name = category["name"]
+                if cat_name not in unique_category_names:
+                    unique_category_names.append(cat_name)
 
-    def get_coco_value_categories(self):
-        """
-        Returns:
-            cat_coco_li: value
-        """
-        catalogged_cat_li = []
-        for i,idi in enumerate(self.annotation_li):
-            for iidi in idi["categories"]:
-                cat_name = iidi["name"]
-                if cat_name not in catalogged_cat_li:
-                    catalogged_cat_li.append(cat_name)
+        category_name_to_id = {name: (i + 1) for i, name in enumerate(unique_category_names)}
+        categories_list = [{"id": i + 1, "name": name} for i, name in enumerate(unique_category_names)]
 
-        cat_rev_di = {e:(i+1) for i,e in enumerate(catalogged_cat_li)}
-        # { item:k for k,item in all_cat_di.items() }
+        return categories_list, category_name_to_id
 
-        cat_coco_li = [{"id": i+1, "name": e} for i,e in enumerate(catalogged_cat_li)]
-
-        return cat_coco_li, cat_rev_di
-
-    def _generate_suffix(self, file_name):
+    def _generate_duplicate_suffix(self, file_name):
         # Generate next available suffix like "name (001).ext"
         stem, ext = os.path.splitext(file_name)
         stem = stem.rstrip()
@@ -44,88 +71,102 @@ class AggreagateCoco:
                 return f"{base} ({nxt:03d}){ext}"
         return f"{stem} (001){ext}"
 
-    def generate_imgs_and_annotations_li(
-        self, all_category_map_di, if_img_name_match="skip", show_warning=True
+    def build_images_and_annotations(
+        self, category_name_to_id, if_img_name_match="skip", show_warning=True
     ):
+        """Create unified images and annotations arrays.
+
+        Parameters
+        ----------
+        category_name_to_id: dict[str, int]
+            Mapping of category name to unified category id (1-based).
+        if_img_name_match: {"skip", "append"}
+            Behavior when encountering duplicate image file names:
+            - "skip": ignore subsequent duplicates
+            - "append": append " (NNN)" suffix to duplicates
+        show_warning: bool
+            Whether to print a warning when a duplicate image name is seen.
+
+        Returns
+        -------
+        (images, annotations): tuple[list[dict], list[dict]]
+            Unified COCO `images` and `annotations` lists.
         """
-        options:
-            all_category_map_di = {
-                "coffee-bean": 1,
-                "tea-seed": 2,
-                "mango": 3,
-                "lemon": 4,
-                "orange": 5
-            }
-            if_img_name_match="skip", "append"
-        """
-        # coco annotation in annotation_li will be rotated index-wise, sort and append that pair to main accordingly
-        all_images_li, all_annotations_li = [], []
-        all_category_map_di = deepcopy(all_category_map_di)
-        img_map_di = {}
+        images, annotations = [], []
+        category_name_to_id = deepcopy(category_name_to_id)
+        file_name_to_image_id = {}
 
-        for i,idi in enumerate(self.annotation_li):
+        for ann in self.annotation_dicts:
+            images_in_ann, annotations_in_ann = ann["images"], ann["annotations"]
+            category_id_to_name = {c["id"]: c["name"] for c in ann["categories"]}
 
-            # info in these ann
-            ann_img_li, ann_anno_li = self.annotation_li[i]["images"], self.annotation_li[i]["annotations"]
-            ann_cat_map_di = {di["id"]:di["name"] for di in self.annotation_li[i]["categories"]}
+            # Map original image_id -> file_name before any remapping
+            internal_image_id_to_file_name = {img["id"]: img["file_name"] for img in images_in_ann}
 
-            # working on images
-            int_img_map_di = {imdi["id"]:imdi["file_name"] for imdi in ann_img_li}
-
-            # individual image_di
-            for imdi in ann_img_li:
-                file_name = imdi["file_name"]
-                if file_name in img_map_di:
+            # Process images
+            for img_dict in images_in_ann:
+                file_name = img_dict["file_name"]
+                if file_name in file_name_to_image_id:
                     if show_warning:
                         print(f"There's already a record present for the image with name '{file_name}'.")
-                    if if_img_name_match=="append":
-                        file_name = self._generate_suffix(file_name)
-                        # mapping dict
-                        img_map_di[file_name] = len(img_map_di)
-                    elif if_img_name_match=="skip":
-                        continue  # skip this file
+                    if if_img_name_match == "append":
+                        file_name = self._generate_duplicate_suffix(file_name)
+                        file_name_to_image_id[file_name] = len(file_name_to_image_id)
+                    elif if_img_name_match == "skip":
+                        continue
                 else:
-                    # mapping dict
-                    img_map_di[file_name] = len(img_map_di)
+                    file_name_to_image_id[file_name] = len(file_name_to_image_id)
 
-                # appending to main
-                imdi["id"] = img_map_di[file_name]
-                imdi["file_name"] = file_name
-                all_images_li.append(imdi)
+                img_dict["id"] = file_name_to_image_id[file_name]
+                img_dict["file_name"] = file_name
+                images.append(img_dict)
 
-            # individual annotation
-            for andi in ann_anno_li:
-                anid, animid = andi["id"], andi["image_id"]
-                an_cat_name = ann_cat_map_di[andi["category_id"]]
-                fn_int_di = int_img_map_di[animid]
+            # Process annotations
+            for ann_dict in annotations_in_ann:
+                # Map annotation's original image_id to the original file_name, then to new image id
+                original_image_id = ann_dict["image_id"]
+                category_name = category_id_to_name[ann_dict["category_id"]]
+                original_file_name = internal_image_id_to_file_name[original_image_id]
 
-                # overwriting some information
-                andi["id"] = len(all_annotations_li)
-                andi["image_id"] = img_map_di[fn_int_di]
-                andi["category_id"] = all_category_map_di[an_cat_name]
-                all_annotations_li.append(andi)
+                ann_dict["id"] = len(annotations)
+                ann_dict["image_id"] = file_name_to_image_id[original_file_name]
+                ann_dict["category_id"] = category_name_to_id[category_name]
+                annotations.append(ann_dict)
 
-        return all_images_li, all_annotations_li
+        return images, annotations
 
     def run(self, if_img_name_match="skip", show_warning=True):
+        """Aggregate all provided annotations and return a COCO dict.
+
+        Parameters
+        ----------
+        if_img_name_match: {"skip", "append"}
+            How to handle duplicate image file names.
+        show_warning: bool
+            Whether to print warnings on duplicates.
+
+        Returns
+        -------
+        dict
+            A COCO-style dict with keys: `info`, `categories`, `images`, `annotations`.
         """
-            if_img_name_match="skip", "append"
-            show_warning: boolean
-        """
-        agg_coco_di = {}
-        agg_coco_di["info"] = {"description": "agg-coco-data"}
-        agg_coco_di["categories"], all_cat_rev_di = self.get_coco_value_categories()
-        agg_coco_di["images"], agg_coco_di["annotations"] = self.generate_imgs_and_annotations_li(
-            all_cat_rev_di, if_img_name_match=if_img_name_match, show_warning=show_warning)
+        aggregated = {}
+        aggregated["info"] = {"description": "agg-coco-data"}
+        aggregated["categories"], category_name_to_id = self.collect_categories()
+        aggregated["images"], aggregated["annotations"] = self.build_images_and_annotations(
+            category_name_to_id, if_img_name_match=if_img_name_match, show_warning=show_warning
+        )
 
-        return agg_coco_di
+        return aggregated
+
+    # Backwards-compatible aliases (internal helpers)
+    def get_coco_value_categories(self):  # legacy name
+        return self.collect_categories()
+
+    def generate_imgs_and_annotations_li(self, all_category_map_di, if_img_name_match="skip", show_warning=True):  # legacy name
+        return self.build_images_and_annotations(all_category_map_di, if_img_name_match, show_warning)
 
 
-"""
-agg_coco_di = AggreagateCoco(annotation_li).run(if_img_name_match="skip")
-# agg_coco_di = AggreagateCoco(annotation_li).run(if_img_name_match="append")
+# Backwards-compatible public alias
+AggregateCoco = CocoAggregator
 
-print('#images :', len(agg_coco_di['images']))
-print('#annotation :', len(agg_coco_di['annotations']))
-
-"""

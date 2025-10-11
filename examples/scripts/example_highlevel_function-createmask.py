@@ -35,11 +35,11 @@ def run():
         # "eg: None, ((0.1,0.1), (0.9,0.9))"
     }
 
-    modif_di = ctu.accept_and_process_modif_di(modif_di)
-    img = ctu.get_modif_image(modif_di)
-    anno = ctu.get_modif_coco_annotation(img, str(coco_path), modif_di)
+    modif_di = ctu.normalize_modification_spec(modif_di)
+    img = ctu.get_modified_image(modif_di)
+    anno = ctu.get_modified_coco_annotation(img, str(coco_path), modif_di)
 
-    ctu.Visualize.draw_annotation(
+    ctu.AnnotationVisualizer.draw_annotation(
         img,
         coco_ann_di=anno,
         cls_mapper_di=None,

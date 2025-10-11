@@ -17,7 +17,8 @@ Import from [ctu/__init__.py](mdc:ctu/__init__.py)
   - `WholeCoco2SingleImgCoco`
   - `Coco2CocoRel`
   - `CocoRel2CocoSpecificSize`
-  - `AggreagateCoco`
+  - `AggregateCoco
+`
 
 ## Typical snippet
 ```python

@@ -1,17 +1,33 @@
+"""COCO Relative -> Absolute (for a target image size)
 
+Convert a COCO-relative annotation (coordinates in [0, 1]) back to absolute
+pixel coordinates for a specific image shape (height, width).
+
+ASCII map (x right, y down):
+    Relative (r_x, r_y)  --multiply-->  Absolute (x, y)
+           x = r_x * width
+           y = r_y * height
+"""
 from copy import deepcopy
 from ctu.cocout00_utils import Polygons
 
 
-class CocoRel2CocoSpecificSize:
-    """relative to coordinate system"""
+class CocoRelativeToAbsolute:
+    """Convert relative COCO coordinates to absolute for a target size.
+
+    Quick example:
+        conv = CocoRelativeToAbsolute()
+        abs_coco = conv.run(rel_coco_di, desired_ht_wd=(1080, 1920), crop_oof=True)
+
+    Notes
+    -----
+    - The tuple order for shapes is (height, width).
+    - If both segmentation and bbox are present when computing area, segmentation is used.
+    """
 
     # area calculation
-    def _anno_area(self, img_ht_wd, segmentation=None, bbox=None):
-        """
-        Adding Area
-        if both segmentation and bbox is provided then segmentation is given higher priority.
-        """
+    def _compute_annotation_area(self, img_ht_wd, segmentation=None, bbox=None):
+        """Compute area in pixels. Segmentation takes priority over bbox."""
         if segmentation is not None:
             polygon = segmentation
         elif bbox is not None:
@@ -25,16 +41,16 @@ class CocoRel2CocoSpecificSize:
         return mask.area_of_mask()
 
     # convert coordinate to relative values
-    def _is_x_coord(self, index):
+    def _index_is_x_coordinate(self, index):
         return index%2==0
 
-    def _transform_one_image_info(self, image_info, desired_ht_wd):
-        """ works on a element """
+    def _update_image_dimensions(self, image_info, desired_ht_wd):
+        """Update image height and width to target shape."""
         image_info["height"], image_info["width"] = desired_ht_wd
         return image_info
 
-    def _crop_coord(self, ele, index, img_wd, img_ht):
-        if self._is_x_coord(index):
+    def _clamp_coordinate_to_image_bounds(self, ele, index, img_wd, img_ht):
+        if self._index_is_x_coordinate(index):
             if ele < 0:
                 return 0.0
             elif ele > img_wd:
@@ -49,11 +65,15 @@ class CocoRel2CocoSpecificSize:
             else:
                 return ele
 
-    def _gen_abs_coordinate_li(self, rel_coord_li, img_wd, img_ht, crop_out_of_frame):
-        """
-        rel_coord_li: [0.7349377026796378, 0.3037492177277122, 0.021164021164021187, 0.30357854013767976]
-        to abs
-        : [3386.5929339477707, 1049.7572964669732, 97.52380952380963, 1049.1674347158212]
+    def _relative_to_absolute_coordinates(self, rel_coord_li, img_wd, img_ht, crop_out_of_frame):
+        """Convert flattened [x1, y1, ...] relative list to absolute pixels.
+        
+        Example:
+            rel_coord_li = [0.5, 0.5, 0.5, 0.5]
+            img_wd = 100
+            img_ht = 100
+            crop_out_of_frame = True
+            absolute_coord_li = [50, 50, 50, 50]
         """
         # sum([ e>1 for e in rel_coord_li ]) Disabling this warning
         #
@@ -63,26 +83,26 @@ class CocoRel2CocoSpecificSize:
         #     return rel_coord_li
         if crop_out_of_frame:
             temp_li = [
-                coordinate*img_wd if self._is_x_coord(i) else coordinate*img_ht
+                coordinate*img_wd if self._index_is_x_coordinate(i) else coordinate*img_ht
                 for i,coordinate in enumerate(rel_coord_li)
             ]
-            return [self._crop_coord(e, i, img_wd, img_ht) for i,e in enumerate(temp_li)]
+            return [self._clamp_coordinate_to_image_bounds(e, i, img_wd, img_ht) for i,e in enumerate(temp_li)]
         else:
             return [
-                coordinate*img_wd if self._is_x_coord(i) else coordinate*img_ht
+                coordinate*img_wd if self._index_is_x_coordinate(i) else coordinate*img_ht
                 for i,coordinate in enumerate(rel_coord_li)
             ]
 
-    def _transform_one_annotation(self, anno_info, desired_ht_wd, crop_out_of_frame):
-        """ works on a element """
+    def _convert_annotation_to_absolute(self, anno_info, desired_ht_wd, crop_out_of_frame):
+        """Convert a single annotation from relative to absolute coordinates."""
         img_ht, img_wd = desired_ht_wd
 
-        anno_info["segmentation"] = [self._gen_abs_coordinate_li(anno, img_wd, img_ht, crop_out_of_frame)
+        anno_info["segmentation"] = [self._relative_to_absolute_coordinates(anno, img_wd, img_ht, crop_out_of_frame)
                                      for anno in anno_info["segmentation"]]
-        anno_info["bbox"] = self._gen_abs_coordinate_li(anno_info["bbox"], img_wd, img_ht, crop_out_of_frame)
+        anno_info["bbox"] = self._relative_to_absolute_coordinates(anno_info["bbox"], img_wd, img_ht, crop_out_of_frame)
 
         # calculated field
-        anno_info["area"] = self._anno_area(desired_ht_wd, anno_info["segmentation"], anno_info["bbox"])
+        anno_info["area"] = self._compute_annotation_area(desired_ht_wd, anno_info["segmentation"], anno_info["bbox"])
         anno_info["area"] = abs(int(anno_info["area"]))  # to make it json serializable
 
         # Delete area key if present
@@ -91,15 +111,29 @@ class CocoRel2CocoSpecificSize:
         return anno_info
 
     def run(self, rel_coco_di, desired_ht_wd=(1000,1000), crop_oof=True, area_thresh_for_oof=0):
-        """
-        oof = out_of_frame
+        """Convert a COCO-relative dict to absolute pixel coordinates.
 
-        Input:
-            rel_coco_di: coco_di in relative coordinate
-            desired_ht_wd: change the coordinate according to the method
+        oof (out_of_frame)
+        
+        Parameters
+        ----------
+        rel_coco_di : dict
+            COCO-like dict with coordinates in relative form (values in [0, 1]).
+        desired_ht_wd : tuple[int, int]
+            Target image shape as (height, width). Example: (1080, 1920)
+        crop_oof : bool
+            If True, clamp out-of-frame coordinates to the image bounds.
+        area_thresh_for_oof : float
+            Drop annotations with computed area strictly less than this threshold.
 
-        Return:
-            coco_di (in coordinate)
+        Returns
+        -------
+        dict
+            COCO-like dict with absolute pixel coordinates.
+
+        Example
+        -------
+        >>> CocoRelativeToAbsolute().run(rel_coco_di, desired_ht_wd=(1000, 1000), crop_oof=True)
         """
         new_di = deepcopy(rel_coco_di)
 
@@ -107,13 +141,13 @@ class CocoRel2CocoSpecificSize:
 
             # anno_info
             anno_info = new_di["annotations"][i]
-            new_di["annotations"][i] = self._transform_one_annotation(anno_info, desired_ht_wd, crop_oof)
+            new_di["annotations"][i] = self._convert_annotation_to_absolute(anno_info, desired_ht_wd, crop_oof)
 
             # image_info
             image_index = [i for i,e in enumerate(new_di["images"])
                            if e["id"]==anno_info["image_id"]][0]
             image_info = new_di["images"][image_index]
-            new_di["images"][image_index] = self._transform_one_image_info(
+            new_di["images"][image_index] = self._update_image_dimensions(
                 image_info, desired_ht_wd)
 
         # remove those annotation with area 0 or less
@@ -122,22 +156,5 @@ class CocoRel2CocoSpecificSize:
         return new_di
 
 
-"""
-# Getting COCO & COCO Relative annotation
-coco_path= "data/input/Annotations/coco-labels_wt-estimation-carrot-orange-potato.json"
-whole_anno_di = WholeCoco2SingleImgCoco.read_annotation(coco_path)
-single_coco_di = WholeCoco2SingleImgCoco(coco_di=whole_anno_di).run(0)
-rel_coco_di = Coco2CocoRel().run(single_coco_di)
-
-# Msg
-print('\nCOCO Annotation:\n', single_coco_di["annotations"][0]["segmentation"])
-print('\nCOCO Relative Annotation:\n', rel_coco_di["annotations"][0]["segmentation"])
-
-# Convert it back to Absolute Coordinate System for any image size: (1) From Coco Relative
-new_coco_di = CocoRel2CocoSpecificSize().run(rel_coco_di, desired_ht_wd=(100,100))
-print('\nNew COCO Relative Annotation for (100,100):\n', new_coco_di["annotations"][0]["segmentation"])
-
-# Convert it back to Absolute Coordinate System for any image size: (2) From Coco
-# --> Error gets Generated
-new_coco_di = CocoRel2CocoSpecificSize().run(single_coco_di, desired_ht_wd=(100,100))
-# """
+# Backwards-compatible alias
+CocoRel2CocoSpecificSize = CocoRelativeToAbsolute

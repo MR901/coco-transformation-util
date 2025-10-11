@@ -5,10 +5,11 @@ import cv2
 import json
 import random
 from ctu import (
-    sample_modif_step_di, accept_and_process_modif_di,
-    get_modif_image, get_modif_coco_annotation
+    modification_spec_template, normalize_modification_spec,
+    get_modified_image, get_modified_coco_annotation
 )
-from ctu import Visualize, AggreagateCoco
+from ctu import AnnotationVisualizer, CocoAggregator
+
 
 def run():
     examples_dir = Path(__file__).resolve().parents[1]
@@ -48,7 +49,7 @@ def run():
 
         print('-'*100)
         print(f'Counter: {counter} \n')
-        check_di = sample_modif_step_di
+        check_di = modification_spec_template
 
         check_di["image_path"] = image_paths[random.randint(0, len(image_paths) - 1)]
         check_di["aspect_ratio"] = aspect_ratio[random.randint(0,len(aspect_ratio)-1)]
@@ -56,11 +57,11 @@ def run():
         check_di["padding_ht_wd"] = pad_ht_wd_li[random.randint(0,len(pad_ht_wd_li)-1)]
         check_di["crop_pt1_pt2"] = crop_pt1_pt2_li[random.randint(0,len(crop_pt1_pt2_li)-1)]
 
-        modif_di = accept_and_process_modif_di(check_di)
-        img = get_modif_image(modif_di)
+        modif_di = normalize_modification_spec(check_di)
+        img = get_modified_image(modif_di)
         print('Image Shape: ', img.shape)
 
-        anno = get_modif_coco_annotation(img, str(coco_path), modif_di)
+        anno = get_modified_coco_annotation(img, str(coco_path), modif_di)
         
         # Save Image Locally and change the image name in the annotation
         img_new_name = f'./temporary/file_{counter}.jpeg'
@@ -75,14 +76,15 @@ def run():
 
         annotation_li.append(anno)  # new
         
-        Visualize.draw_annotation(img, anno, cls_mapper_di=cls_mapper_di, draw_what=["polyline", "mask"])
+        AnnotationVisualizer.draw_annotation(img, anno, cls_mapper_di=cls_mapper_di, draw_what=["polyline", "mask"])
 
         counter += 1
     
     # Aggregate Coco Annotations
     print('# of Individual Annotations: ', len(annotation_li))
     print('Aggregating Individual Annotations....')
-    agg_coco_di = AggreagateCoco(annotation_li).run(if_img_name_match="append", show_warning="True")
+    agg_coco_di = CocoAggregator
+(annotation_li).run(if_img_name_match="append", show_warning="True")
     print('.... Complete !!!')
     print('# of Images in aggregated Anno:', len(agg_coco_di["images"]))
     print('# of Annotation in aggregated Anno:', len(agg_coco_di["annotations"]))

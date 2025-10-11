@@ -1,132 +1,176 @@
+"""COCO Image Slicer
+
+Extract a single-image COCO annotation from a full COCO dataset.
+
+ASCII map (image selection by index/id/name):
+    +-------------------------+
+    | COCO 'images' list ...  |  -> select one ->  single-image COCO
+    +-------------------------+
+
+What this does (short):
+    - Accepts both COCO and COCO-relative annotation formats
+    - Works as a COCO annotation slicer (per-image)
+    - Lookup can be by index, COCO image_id, or file_name
+
+Quick example:
+    slicer = CocoImageSlicer(annotation_path="path/to/coco.json")
+    single = slicer.get_image_annotation("Mangoes.jpeg")  # or 0, or 17 with index_type="coco_image_id"
+"""
 
 import json
 from copy import deepcopy
 
 
-class WholeCoco2SingleImgCoco:
-    """
-    Accepts both coco and coco relative annotation
-    Coco Annotation Slicer: Works Coco with Relative Annotation too
-    Create coco annotation per image wise. Lookup will be based on index
+class CocoImageSlicer:
+    """Create a per-image COCO annotation from a full COCO annotation.
+
+    Parameters
+    ----------
+    annotation_path: str | None
+        Path to a COCO annotation JSON file.
+        Example: "examples/datasets/mini/coco-annotation.json".
+        Takes precedence over `coco_di` if both are provided.
+    coco_di: dict | None
+        Already-loaded COCO annotation dictionary (absolute or relative format).
+        Example: CocoImageSlicer.read_annotation(".../coco.json").
+    inplace: bool
+        If False (default), a deep copy of `coco_di` is stored internally.
+        If True, the provided `coco_di` reference is kept (mutations propagate).
+    msg: bool
+        If True, prints short status messages during initialization.
     """
     @classmethod
     def read_annotation(cls, annotation_path):
+        """Read and return a COCO annotation dictionary from JSON file."""
         with open(annotation_path, "r") as file:
-            coco_ann_di = json.load(file)
-        return coco_ann_di
+            coco_annotation = json.load(file)
+        return coco_annotation
 
     def __init__(self, annotation_path=None, coco_di=None, inplace=False, msg=False):
-        """
-        Precedence to "annotation_path" is given
+        """Initialize the slicer.
+
+        Parameters
+        ----------
+        annotation_path: str | None
+            Path to COCO JSON; used when provided.
+            Precedence to "annotation_path" is given
+            Example: "examples/datasets/mini/coco-annotation.json".
+        coco_di: dict | None
+            In-memory COCO dict (absolute or relative). Used when `annotation_path` is None.
+        inplace: bool
+            False (default): deep copy `coco_di` before storing.
+            True: keep the original `coco_di` reference.
+        msg: bool
+            If True, prints brief informational messages.
+
+        Examples
+        --------
+        # From path
+        slicer = CocoImageSlicer(annotation_path="examples/datasets/mini/coco-annotation.json")
+
+        # From in-memory dict
+        full = CocoImageSlicer.read_annotation(".../coco.json")
+        slicer = CocoImageSlicer(coco_di=full, inplace=False)
         """
         self.msg = msg
 
         # Read Annotation File
         if annotation_path is not None:
-            if self.msg: print("Annotation Path is used to generate annotation.")
-            self.coco_ann_di = self.read_annotation(annotation_path)
+            if self.msg: print("Annotation path is used to generate annotation.")
+            self.coco_annotation = self.read_annotation(annotation_path)
         else:
-            if self.msg: print("Provided Annotation is used to generate annotation.")
-            self.coco_ann_di = coco_di if inplace else deepcopy(coco_di)
+            if self.msg: print("Provided annotation dict is used to generate annotation.")
+            self.coco_annotation = coco_di if inplace else deepcopy(coco_di)
 
-    def run(self, img_index_or_name, index_type="general_index"):
-        """
-        Input:
-            img_index_or_name: identifier to look for image
-                if integer then work as index
-                if string then work as image name
-            index_type: "coco_image_id" or "general_index"
-        Return:
-            Single image coco annotation
-        """
-        # get whole coco di
-        cdi = self.coco_ann_di
+    def get_image_annotation(self, image_identifier, index_type="general_index"):
+        """Return a single-image COCO annotation.
 
-        # find matching information
-        if (img_index_or_name is not None):
-            if isinstance(img_index_or_name, str):  # image name is provided
-                im_matching_ind = [i for i,e in enumerate(cdi["images"])
-                                   if e["file_name"]==img_index_or_name]
-                if len(im_matching_ind)>1: 
-                    print("Trying to locate:", img_index_or_name)
-                    print("Matched Index:", im_matching_ind)
-                    raise Exception("[Err1a] 2 or more images share the image name."
-                                    " Check your annotation")
-                elif len(im_matching_ind)==0:
-                    print("No Matching Index for image_name:", img_index_or_name)
+        Parameters
+        ----------
+        image_identifier: int | str
+            identifier to look for image
+            - if string then work as image name
+              str: file name in COCO, e.g., "Mangoes.jpeg"
+            - if integer then work as index
+              int: 0-based list index (index_type="general_index")
+                   or COCO image id (index_type="coco_image_id")
+        index_type: str
+            Valid: "general_index" (default) or "coco_image_id".
+
+        Returns
+        -------
+        dict | None
+            COCO annotation for that single image, or None if no match is found.
+
+        Examples
+        --------
+        # by file name
+        CocoImageSlicer(".../coco.json").get_image_annotation("Mangoes.jpeg")
+        # by list index
+        CocoImageSlicer(".../coco.json").get_image_annotation(0, index_type="general_index")
+        # by COCO image_id
+        CocoImageSlicer(".../coco.json").get_image_annotation(17, index_type="coco_image_id")
+        """
+        coco_annotation = self.coco_annotation
+
+        # Resolve target image_id and its index in the images list
+        if image_identifier is None:
+            raise Exception(
+                "Provide image name, index in coco['images'], or a COCO image id"
+            )
+
+        if isinstance(image_identifier, str):
+            matching_indices = [
+                i for i, e in enumerate(coco_annotation["images"])
+                if e["file_name"] == image_identifier
+            ]
+            if len(matching_indices) > 1:
+                print("Trying to locate:", image_identifier)
+                print("Matched Index:", matching_indices)
+                raise Exception("[Err1a] 2 or more images share the image name. Check your annotation")
+            elif len(matching_indices) == 0:
+                print("No Matching Index for image_name:", image_identifier)
+                return None
+            image_list_index = matching_indices[0]
+            image_id = coco_annotation["images"][image_list_index]["id"]
+        else:
+            idx = image_identifier
+            if index_type == "coco_image_id":
+                image_id = idx
+                matching_indices = [
+                    i for i, e in enumerate(coco_annotation["images"])
+                    if e["id"] == image_id
+                ]
+                if len(matching_indices) > 1:
+                    print("Trying to locate:", image_id)
+                    print("Matched Index:", matching_indices)
+                    raise Exception("[Err2a] 2 or more images share the image index. Check your annotation")
+                elif len(matching_indices) == 0:
+                    print("No Matching Index for image_id:", image_id)
                     return None
-                im_matching_ind = im_matching_ind[0]
-                img_id = cdi["images"][im_matching_ind]["id"]
+                image_list_index = matching_indices[0]
             else:
-                index = img_index_or_name
+                image_list_index = idx
+                image_id = coco_annotation["images"][idx]["id"]
 
-                # Index based lookup
-                if index_type=="coco_image_id":
-                    img_id = index
-                    im_matching_ind = [i for i,e in enumerate(cdi["images"]) if e["id"]==img_id]
-                    if len(im_matching_ind)>1:
-                        print("Trying to locate:", img_id)
-                        print("Matched Index:", im_matching_ind)
-                        raise Exception("[Err2a] 2 or more images share the image index."
-                                        " Check your annotation")
-                    elif len(im_matching_ind)==0:
-                        print("No Matching Index for image_id:", img_id)
-                        return None
-                    im_matching_ind = im_matching_ind[0]
-                else:
-                    im_matching_ind = index
-                    img_id = cdi["images"][index]["id"]
-        else:
-            raise Exception("Either Image name or index in coco[`images`] list or "
-                  "ID of image in coco[`images`] needs to be provided")
+        # Collect annotations linked to this image_id
+        annotation_indices = [
+            i for i, e in enumerate(coco_annotation["annotations"])
+            if e["image_id"] == image_id
+        ]
 
-        # getting matching annotation for this image
-        anno_matching_ind = [i for i,e in enumerate(cdi["annotations"]) if e["image_id"]==img_id ]
+        # Build single-image COCO dictionary
+        single_image_coco = {}
+        single_image_coco["info"] = coco_annotation["info"]
+        single_image_coco["images"] = [coco_annotation["images"][image_list_index]]
+        single_image_coco["annotations"] = [coco_annotation["annotations"][i] for i in annotation_indices]
+        single_image_coco["categories"] = coco_annotation["categories"]
 
-        # generating single image coco
-        indi_di = {}
-        indi_di["info"] = cdi["info"]
-        indi_di["images"] = [cdi["images"][im_matching_ind]]  # single element in list
-        indi_di["annotations"] = [cdi["annotations"][e] for e in anno_matching_ind]
-        indi_di["categories"] = cdi["categories"]
+        return single_image_coco
 
-        return indi_di
+    # Backwards-compatible method name
+    def run(self, img_index_or_name, index_type="general_index"):
+        return self.get_image_annotation(img_index_or_name, index_type=index_type)
 
-
-""" # Sample Code
-coco_path= "data/input/Annotations/coco-labels_wt-estimation-carrot-orange-potato.json"
-
-# Reading whole annotation from a path
-whole_anno_di = WholeCoco2SingleImgCoco.read_annotation(coco_path)
-
-# (1) Create annotation for single image: (1) Using already read coco_di
-single_coco_di = WholeCoco2SingleImgCoco(annotation_path=coco_path).run(0)
-print(single_coco_di)
-
-# (1) Create annotation for single image: (2) Using the path
-single_coco_di = WholeCoco2SingleImgCoco(coco_di=whole_anno_di).run(0)
-print(single_coco_di)
-
-# (2) Create annotation for single image: (1) Image selection Based on Image Index present in List
-single_coco_di = WholeCoco2SingleImgCoco(coco_path).run(0, index_type="general_index")
-print(single_coco_di)  # observe images: id will be+1 to index by default
-
-# (2) Create annotation for single image: (2) Image selection Based on Image ID (present in coco)
-single_coco_di = WholeCoco2SingleImgCoco(coco_path).run(1, index_type="coco_image_id")
-print(single_coco_di)
-
-# (2) Create annotation for single image: (3) Image selection Based on Image Name
-single_coco_di = WholeCoco2SingleImgCoco(coco_path).run("IMG_20210302_102203_wt98.jpg")
-print(single_coco_di)
-
-# (3) Create annotation for single image: (1) Using Coco Annotation
-single_coco_di = WholeCoco2SingleImgCoco(coco_di=whole_anno_di).run(0)
-print(single_coco_di)
-
-# (3) Create annotation for single image: (2) Using Relative Coco Annotation
-rel_coco_di = Coco2CocoRel().run(whole_anno_di)
-# print(rel_coco_di)
-single_coco_di = WholeCoco2SingleImgCoco(coco_di=rel_coco_di).run(0)
-print(single_coco_di)
-# """
-
+# Backwards-compatible class alias
+WholeCoco2SingleImgCoco = CocoImageSlicer
