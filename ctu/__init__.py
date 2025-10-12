@@ -3,21 +3,15 @@
 from __future__ import absolute_import
 from ctu._version import __version__
 
-from .cocout00_utils import (
-    ImageTransform,
-    AnnotationVisualizer,
-    create_mask,
-    save_mask,
-    # Back-compat aliases
-    ImgTransform,
-    Visualize,
-)
-from .cocout01_slicer import WholeCoco2SingleImgCoco
-from .cocout02_invariant_format import Coco2CocoRel, CocoAbsoluteToRelative
-from .cocout03_inv_to_coco import CocoRelativeToAbsolute, CocoRel2CocoSpecificSize
-from .cocout04_agg_coco import CocoAggregator, AggregateCoco
+from .utils.image_ops import ImageTransform, ImgTransform
+from .utils.viz import AnnotationVisualizer, Visualize
+from .utils.mask_utils import create_mask, save_mask
+from .coco_image_slicer import CocoImageSlicer, WholeCoco2SingleImgCoco
+from .coco_absolute_to_relative import Coco2CocoRel, CocoAbsoluteToRelative
+from .coco_relative_to_absolute import CocoRelativeToAbsolute, CocoRel2CocoSpecificSize
+from .coco_aggregator import CocoAggregator, AggregateCoco
 
-from .cocout_wrapper import (
+from .coco_transform_wrappers import (
     modification_spec_template,
     normalize_modification_spec,
     get_modified_image,
@@ -29,7 +23,13 @@ from .cocout_wrapper import (
     accept_and_process_modif_di
 )
 
+# Format exporters
+from .formats.yolo import coco_to_yolo, compute_category_id_to_index  # noqa: F401
+from .formats.voc import coco_to_voc_per_image  # noqa: F401
+from .utils.dataset_view import DatasetView  # noqa: F401
+
 __all__ = [
+    "CocoImageSlicer",
     "modification_spec_template",
     "normalize_modification_spec",
     "get_modified_image",
@@ -50,5 +50,10 @@ __all__ = [
     "CocoRelativeToAbsolute",
     "CocoRel2CocoSpecificSize",
     "CocoAggregator",
-    "AggregateCoco"
+    "AggregateCoco",
+    # Formats
+    "coco_to_yolo",
+    "compute_category_id_to_index",
+    "coco_to_voc_per_image",
+    "DatasetView"
 ]

@@ -3,7 +3,7 @@ import os
 from pathlib import Path
 import cv2
 import random
-from ctu import CocoImageSlicer, CocoAbsoluteToRelative, CocoRelativeToAbsolute
+from ctu import CocoImageSlicer, CocoAbsoluteToRelative, CocoRelativeToAbsolute, CocoRel2CocoSpecificSize
 from ctu import ImgTransform, Visualize
 
 

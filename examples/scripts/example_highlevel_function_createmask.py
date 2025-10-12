@@ -44,7 +44,10 @@ def run():
         coco_ann_di=anno,
         cls_mapper_di=None,
         draw_what=["mask"], # "bbox", "polyline", 
-        thickness=10
+        thickness=10,
+        alpha=0.98,
+        title="Mask overlay",
+        figure_size=(8, 4)
     )
 
     # print(anno)
@@ -54,7 +57,7 @@ def run():
     mask = ctu.create_mask(img, poly, transparent_mask=True)
     # visualize or save as needed
 
-    mask = ctu.create_mask(img, poly, transparent_mask=False)
+    mask = ctu.create_mask(img, poly, category_fill_value=1, transparent_mask=False)
     # visualize or save as needed
     
     

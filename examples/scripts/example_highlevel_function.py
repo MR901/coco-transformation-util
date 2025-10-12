@@ -83,8 +83,7 @@ def run():
     # Aggregate Coco Annotations
     print('# of Individual Annotations: ', len(annotation_li))
     print('Aggregating Individual Annotations....')
-    agg_coco_di = CocoAggregator
-(annotation_li).run(if_img_name_match="append", show_warning="True")
+    agg_coco_di = CocoAggregator(annotation_li).run(if_img_name_match="append", show_warning="True")
     print('.... Complete !!!')
     print('# of Images in aggregated Anno:', len(agg_coco_di["images"]))
     print('# of Annotation in aggregated Anno:', len(agg_coco_di["annotations"]))
