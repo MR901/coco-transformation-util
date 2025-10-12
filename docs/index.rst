@@ -19,6 +19,9 @@ wrappers similar in spirit to scikit-learn's user-friendly APIs.
    api/index
    pages/deprecations
    pages/examples
+   pages/end_to_end_example
+   pages/visual_recipes
+   pages/advanced_visuals
 
 
 Indices and tables
