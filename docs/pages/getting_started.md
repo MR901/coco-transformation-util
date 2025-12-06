@@ -1,12 +1,20 @@
 # Getting Started
 
-Install from source:
+Install (recommended):
 
 ```bash
-git clone https://github.com/MR901/coco-transformation-util.git
-cd coco-transformation-util
-python3 setup.py install
+pip install -U pip
+pip install -e .
+# or install latest directly from Git
+pip install git+https://github.com/MR901/coco-transformation-util.git
 ```
+
+Create annotations (COCO) with external tools:
+
+- coco-annotator: `https://github.com/jsbroks/coco-annotator`
+- label-studio: `https://github.com/HumanSignal/label-studio`
+
+Export your dataset to COCO JSON and point CTU to that annotation file.
 
 Quick start with wrappers:
 

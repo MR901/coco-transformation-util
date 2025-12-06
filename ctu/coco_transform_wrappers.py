@@ -1,6 +1,7 @@
 """High-level wrappers for image transformation and COCO annotation updates.
 
 This module exposes simple helper functions to:
+
 - Normalize a user-provided modification spec
 - Generate a modified image from the spec
 - Produce a corresponding modified COCO annotation for that image
@@ -54,6 +55,7 @@ def normalize_modification_spec(modification_spec):
     """Normalize and enrich a modification spec for downstream functions.
 
     The normalization performs two adjustments:
+
     - If aspect ratio is None, sets image_ht_wd to None (no resizing).
     - If aspect ratio is "maintain", converts image_ht_wd to ("-", width)
       so that only width is used by the image generator.

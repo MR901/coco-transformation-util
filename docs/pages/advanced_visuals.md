@@ -12,14 +12,12 @@ segmentation). This page will be updated with visuals once implemented.
 
 First image's YOLO labels (class index, cx cy w h):
 
-```text
-.. literalinclude:: ../_static/example_yolo.txt
-   :language: text
+```{literalinclude} ../_static/example_yolo.txt
+:language: text
 ```
 
 ## VOC XML Preview
 
-```xml
-.. literalinclude:: ../_static/example_voc.xml
-   :language: xml
+```{literalinclude} ../_static/example_voc.xml
+:language: xml
 ```

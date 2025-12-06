@@ -1,95 +1,179 @@
 <div align="center">
 
-<h1>CTU - COCO Transformation Util</h1>
-
-[![PyPI version](https://badge.fury.io/py/syinfo.svg)](https://badge.fury.io/py/ctu) [![PyPI Downloads](https://static.pepy.tech/personalized-badge/ctu?period=total&units=NONE&left_color=GRAY&right_color=BRIGHTGREEN&left_text=downloads)](https://pepy.tech/projects/mcp-plots) [![Python versions](https://img.shields.io/pypi/pyversions/ctu.svg)](https://pypi.org/project/ctu/)
+<h1>CTU — COCO Transformation Util</h1>
 
 </div>
 
-<br>
-
-A python package to perform same transformation to coco-annotation as performed on the image.
+A Python library to apply the same geometric transforms to images and their COCO annotations. CTU offers low-level utilities and simple high-level wrappers to keep image and annotation perfectly in sync.
 
 
-# Installation
+## Why CTU?
 
-## Way 1
+- **Consistent transforms**: Resize, pad, crop (and more) while updating COCO annotations accordingly.
+- **Simple wrappers**: High-level functions to express a modification recipe and get the transformed image and its COCO.
+- **Visualization**: Overlay bboxes, polygons, and masks; stable per-category colors; quick inspection utilities.
+- **Format exporters**: Convert COCO to YOLO (per image) and VOC (XML) formats.
+- **Mask utilities**: Create, union, intersect, invert masks; compute IoU.
+
+
+## Installation
+
+Python 3.6+ is required. Create and activate a virtual environment (recommended), then either install from Git or clone locally.
+
+Install directly from Git:
+
 ```bash
-$ git clone https://github.com/MR901/coco-transformation-util.git
-$ cd coco-transformation-util
-$ python3 setup.py install
+pip install -U pip
+pip install git+https://github.com/MR901/coco-transformation-util.git
 ```
 
-## Way 2
+Or clone and develop locally:
+
 ```bash
-$ pip3 install git+https://github.com/MR901/coco-transformation-util.git
-<<< Username: <username>
-<<< Password: <personal access token or SSH key>
+git clone https://github.com/MR901/coco-transformation-util.git
+cd coco-transformation-util
+pip install -U pip
+pip install -e .
 ```
-Personal Access token looks like this `83b318cg875a5g302e5fdaag74afc8ceb6a91a2e`.
 
-Reference: [How to generate Personal Access token](https://docs.github.com/en/github/authenticating-to-github/keeping-your-account-and-data-secure/creating-a-personal-access-token)  
+Check installation:
 
-## Check installation
 ```python
 import ctu
 print(ctu.__version__)
 ```
 
+Notes:
+- Dependencies are pinned in `pyproject.toml` (e.g., `opencv-python-headless`, `numpy`, `matplotlib`).
+- Prefer the headless OpenCV build on servers/CI.
 
-# Benefits and Use Cases
 
-1. Faster Model Training: Decrease the size of images and accordingly its annotation will be changed using this.  
-2. Flexibility: Rescaling of images and annotations to meet the need of Model/Framework.  
-3. Cost Saving: Lesser Computation requirement as images can be downscaled.  
-4. Interpretability: Annotation Visualization is also a part of this package.
-5. Data Augmentation: \<more practical in future\>
-6. Ability to handle other cases: Added Functionality such as cropping or padding of the annotation can help in multiple other cases such as:
-    - cropping out each object image & annotation from an original image
-    - cropping unnecessary area to zoom in on some particular area.
-    - converting images to 1:1 aspect ratio by using padding and/or cropping.
-  
-  
-# How to use it?
-  
-## Core
-There are four core modules inside that helps in performing operations on COCO Annotation. These can imported as shown below:  
-```python
-from ctu import WholeCoco2SingleImgCoco, CocoAbsoluteToRelative, CocoRelativeToAbsolute, CocoAggregator  # AggregateCoco is still available for backward compatibility
-```
-It's recommended that you have look at `samples/example_core_modules.py` to understand and explore how to use these.
-  
-## Wrapper
-Making use of wrappers can also come in handly to perform multiple operations in a much simpler and interpretable manner using the functions provided below:  
+## Quickstart (Wrappers)
+
+Use the high-level wrapper API to define a modification spec, produce a transformed image, and update its COCO annotation.
+
 ```python
 from ctu import (
-    modification_spec_template, get_modified_image, get_modified_coco_annotation,
-    normalize_modification_spec, ImageTransform, AnnotationVisualizer
+    modification_spec_template,
+    normalize_modification_spec,
+    get_modified_image,
+    get_modified_coco_annotation,
 )
+
+# 1) Build a modification spec (copy and edit the template)
+spec = dict(modification_spec_template)
+spec.update({
+    "image_path": "examples/datasets/mini/Mangoes.jpeg",
+    "aspect_ratio": "maintain",  # options: None, "maintain", "dont maintain"
+    "image_ht_wd": (600, 800),
+    "padding_ht_wd": (0.15, 0.15),
+    "padding_color": (10, 10, 10),
+    "crop_pt1_pt2": ((0.1, 0.1), (0.9, 0.9)),
+})
+
+spec = normalize_modification_spec(spec)
+
+# 2) Produce a transformed image
+img = get_modified_image(spec)
+
+# 3) Update COCO annotation for this transformed image
+coco_path = "examples/datasets/mini/coco-annotation.json"
+ann = get_modified_coco_annotation(img, coco_path, spec)
 ```
-It's recommended that you have look at `samples/example_highlevel_function.py` to understand and explore how to use these. 
-  
-  
-Some sample data has also been provided with this package at `example_data/*` to explore these functionalities.  
-  
-  
-# Demo / Sample
 
-A sample HTML created from Jupyter-Notebook, contating some sample results has been added to the path `samples/Demo-SampleOutput.html`.  
-  
-  
-# Version History
 
-- v0.1: Core Modules: `WholeCoco2SingleImgCoco, CocoAbsoluteToRelative (prev. Coco2CocoRel), CocoRel2CocoSpecificSize`. External Dependency on AMLEET package.
-- v0.2: Removed the dependency on AMLEET package. Develop Core Module: `AggregateCoco` (now also exported as `CocoAggregator`). Addition of field "area" under "annotations" in coco.
-- v0.3: Completed: Remove the out of frame coordinates in annotation. Update & add fields in "annotation" > "images". Ability to create transparent and general mask `create_mask`. **In Development:** Ability to export transformed image, mask and annotation per image wise and as a whole too. 
+## Core building blocks
 
-  
-# Future  
-- Update the image fields in "images" key. (done)
-- Crop out the annotation which are out-of-frame based on recent image shape. (done)
-- Annotation Visualization + Mask creation can become a core feature to this library. (done)
-- Rotate 90 degree left/right.  
-- Flip horizontally or vertically. 
-- COCO to other annotation format can also be a feature to this package.
+Prefer these when you need fine control or want to compose your own pipelines.
+
+```python
+from ctu import CocoAbsoluteToRelative, CocoRelativeToAbsolute, CocoImageSlicer
+
+# Load a single-image COCO annotation by file name
+single = CocoImageSlicer(annotation_path="examples/datasets/mini/coco-annotation.json") \
+    .get_image_annotation("Mangoes.jpeg")
+
+# Convert absolute -> relative
+rel = CocoAbsoluteToRelative().run(single)
+
+# Convert relative -> absolute with a target size
+abs_back = CocoRelativeToAbsolute().run(rel, desired_ht_wd=(600, 800))
+```
+
+
+## Visualization and masks
+
+```python
+from ctu import AnnotationVisualizer, DatasetView
+from ctu.utils.mask_utils import create_mask, union, intersect, invert, iou
+
+# Visualize
+AnnotationVisualizer.draw_annotation(
+    img, ann, draw_what=["bbox", "polyline", "mask"], draw_text=True, same_color_per_category=True
+)
+
+# Mask algebra on polygons (example poly format is COCO-like segmentation)
+poly = ann["annotations"][0]["segmentation"]
+mask = create_mask(img, poly, transparent_mask=False)
+
+# Combine and compare masks
+u = union(mask, mask)
+inter = intersect(mask, mask)
+print("IoU:", iou(mask, mask))
+
+# Dataset utilities
+dv = DatasetView(ann)
+print("#images:", len(list(dv.iter_images())))
+```
+
+
+## Format exporters (COCO -> YOLO / VOC)
+
+```python
+from ctu import CocoImageSlicer, coco_to_yolo, coco_to_voc_per_image
+
+# Convert a COCO dict to YOLO per-image labels
+yolo_map = coco_to_yolo(coco_di)
+
+# Export a single-image COCO to a VOC XML string
+slicer = CocoImageSlicer(coco_di=coco_di)
+single = slicer.get_image_annotation(0, index_type="general_index")
+xml_str = coco_to_voc_per_image(single, as_string=True)
+```
+
+
+## Examples and sample data
+
+Explore end-to-end usage with the included examples and data:
+
+- `examples/scripts/example_highlevel_function.py`: Wrapper quickstart (transform + update COCO).
+- `examples/scripts/example_core_modules.py`: Core APIs (resizing, padding, cropping with annotation updates).
+- `examples/scripts/example_format_exports.py`: Export COCO to YOLO and VOC.
+- `examples/scripts/example_highlevel_function_createmask.py`: Create and visualize masks.
+- `examples/notebooks/RunExample.ipynb`: Interactive walkthrough.
+- `examples/datasets/mini/`: Small test dataset with images and COCO JSON.
+- `examples/outputs/Demo-SampleOutput.html`: Pre-rendered demo output.
+
+
+## Documentation
+
+Additional docs live under `docs/` and are mirrored into the site build. Start with:
+
+- `docs/pages/overview.md`
+- `docs/pages/getting_started.md`
+- `docs/api/index.rst`
+
+
+## Version history (high level)
+
+- v0.1: Initial core modules (`WholeCoco2SingleImgCoco`, `CocoAbsoluteToRelative`, `CocoRel2CocoSpecificSize`).
+- v0.2: Removed external dependency; added `AggregateCoco` (now exported as `CocoAggregator`); added `area` in annotations.
+- v0.3: Out-of-frame coordinate cleanup; image fields updates; added `create_mask` and visualization utilities; exporters and examples.
+
+
+## Roadmap
+
+- Rotation (90° left/right), horizontal/vertical flips.
+- Additional format exporters and advanced augmentation recipes.
+
 

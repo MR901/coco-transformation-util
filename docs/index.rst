@@ -13,9 +13,12 @@ wrappers similar in spirit to scikit-learn's user-friendly APIs.
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
+   :titlesonly:
 
+   pages/readme
    pages/overview
    pages/getting_started
+   user_guide/index
    api/index
    pages/deprecations
    pages/examples

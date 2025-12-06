@@ -24,6 +24,7 @@ extensions = [
     'sphinx.ext.autosummary',
     'sphinx.ext.napoleon',
     'sphinx.ext.viewcode',
+    'sphinx.ext.intersphinx',
     'myst_parser',
 ]
 
@@ -63,3 +64,24 @@ try:
 except Exception:
     html_theme = 'alabaster'
 html_static_path = ['_static']
+
+# MyST configuration
+myst_enable_extensions = [
+    'colon_fence',
+    'linkify',
+]
+
+# Intersphinx mapping for cross-references
+intersphinx_mapping = {
+    'python': ('https://docs.python.org/3', {}),
+    'numpy': ('https://numpy.org/doc/stable/', {}),
+    'matplotlib': ('https://matplotlib.org/stable/', {}),
+}
+
+# Reduce sidebar depth/clutter
+html_theme_options = {
+    'collapse_navigation': True,
+    'sticky_navigation': True,
+    'navigation_depth': 2,
+    'titles_only': True,
+}
