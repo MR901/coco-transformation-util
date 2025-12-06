@@ -1,0 +1,39 @@
+---
+description: Quick reference to CTU public API (imports, purpose, and typical usage)
+---
+
+## CTU Public API Quick Guide
+
+Import from [ctu/__init__.py](mdc:ctu/__init__.py)
+
+- Wrappers
+  - `sample_modif_step_di`: Template dict describing image transformations
+  - `accept_and_process_modif_di(modif_step_di)`
+  - `get_modif_image(modif_step_di)`
+  - `get_modif_coco_annotation(img, coco_path, modif_step_di)`
+
+- Core
+  - `ImgTransform, Visualize, create_mask, save_mask`
+  - `WholeCoco2SingleImgCoco`
+  - `Coco2CocoRel`
+  - `CocoRel2CocoSpecificSize`
+  - `AggregateCoco
+`
+
+## Typical snippet
+```python
+from ctu import sample_modif_step_di, accept_and_process_modif_di, get_modif_image, get_modif_coco_annotation
+
+mods = accept_and_process_modif_di({
+    'image_path': '/path/to/image.jpg',
+    'aspect_ratio': 'maintain',
+    'image_ht_wd': (1500, 2000),
+    'padding_ht_wd': None,
+    'padding_color': (10, 10, 10),
+    'crop_pt1_pt2': None,
+})
+
+img = get_modif_image(mods)
+ann = get_modif_coco_annotation(img, '/path/to/coco.json', mods)
+```
+

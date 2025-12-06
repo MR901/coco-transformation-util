@@ -1,0 +1,46 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ctu"
+description = "A python package to perform same transformation to coco-annotation as performed on the image."
+readme = { file = "README.md", content-type = "text/markdown" }
+requires-python = ">=3.6"
+keywords = ["COCO", "Computer Vision", "Deep Learning"]
+authors = [
+  { name = "Mohit Rajput", email = "mohitrajput901@gmail.com" }
+]
+maintainers = [
+  { name = "Mohit Rajput", email = "mohitrajput901@gmail.com" }
+]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Science/Research",
+  "Intended Audience :: Developers",
+  "Topic :: Software Development :: Libraries",
+  "Topic :: Scientific/Engineering",
+  "Topic :: Scientific/Engineering :: Artificial Intelligence",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3"
+]
+dynamic = ["version"]
+dependencies = [
+  "opencv-python-headless==4.5.2.54",
+  "numpy==1.19.5",
+  "matplotlib==3.2.0"
+]
+
+[project.urls]
+Homepage = "https://git.cglcloud.com/ILC-APAC/coco-transform-util"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+include = ["ctu*"]
+
+[tool.setuptools.dynamic]
+version = { attr = "ctu._version.__version__" }
+
+

@@ -1,0 +1,22 @@
+---
+description: How to navigate CTU examples, notebooks, and sample data
+---
+
+## Examples and Data
+
+- Examples directory: [examples/](mdc:examples)
+  - Core usage: [examples/example_core_modules.py](mdc:examples/example_core_modules.py)
+  - High-level wrapper usage: [examples/example_highlevel_function.py](mdc:examples/example_highlevel_function.py)
+  - Notebooks: [examples/RunExample.ipynb](mdc:examples/RunExample.ipynb)
+  - HTML demo: [examples/Demo-SampleOutput.html](mdc:examples/Demo-SampleOutput.html)
+
+- Sample data: [examples/sample_data/](mdc:examples/sample_data)
+  - Images: `*.jpeg`, `*.png`
+  - COCO annotations: `coco-annotation.json`, `partial-coco-annotation.json`
+
+## Tips
+
+- Adjust paths in examples to your local file locations.
+- Confirm that image names in data match those referenced by COCO annotations.
+- Use the wrapper’s `accept_and_process_modif_di` to derive consistent settings from your input spec.
+

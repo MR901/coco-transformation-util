@@ -1,0 +1,21 @@
+<annotation>
+  <folder></folder>
+  <filename>lemon.jpeg</filename>
+  <size>
+    <width>1600</width>
+    <height>1200</height>
+    <depth>3</depth>
+  </size>
+  <object>
+    <name>lemon</name>
+    <pose>Unspecified</pose>
+    <truncated>0</truncated>
+    <difficult>0</difficult>
+    <bndbox>
+      <xmin>890</xmin>
+      <ymin>296</ymin>
+      <xmax>1390</xmax>
+      <ymax>900</ymax>
+    </bndbox>
+  </object>
+</annotation>

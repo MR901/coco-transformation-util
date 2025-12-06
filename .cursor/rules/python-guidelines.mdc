@@ -1,0 +1,16 @@
+---
+globs: *.py
+description: Python code style and safety tips tailored for CTU
+---
+
+## Python Guidelines for CTU
+
+- Prefer explicit, descriptive names; avoid 1–2 letter identifiers.
+- Guard clauses over deep nesting; avoid unnecessary try/except blocks.
+- Keep comments minimal; explain only non-obvious rationale or invariants.
+- Respect existing formatting; do not reformat unrelated code.
+- Use tuple ordering carefully for image shapes `(height, width)` and OpenCV size `(width, height)`.
+- Handle images via OpenCV consistently; read paths from the rule of thumb in [ctu/cocout_wrapper.py](mdc:ctu/cocout_wrapper.py).
+- Validate dict keys for `modif_step_di` before use; treat as input contract.
+- Maintain type clarity even without annotations; name variables to communicate intent.
+

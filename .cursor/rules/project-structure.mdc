@@ -1,0 +1,35 @@
+---
+alwaysApply: true
+description: High-level map of CTU project structure and key entry points
+---
+
+## CTU Project Structure Guide
+
+- Main package entrypoint: [ctu/__init__.py](mdc:ctu/__init__.py)
+  - Exposes public API imports (wrappers and core modules)
+- High-level wrappers: [ctu/cocout_wrapper.py](mdc:ctu/cocout_wrapper.py)
+  - Simplifies image transform + COCO annotation updates
+- Core modules:
+  - [ctu/cocout00_utils.py](mdc:ctu/cocout00_utils.py)
+  - [ctu/cocout01_slicer.py](mdc:ctu/cocout01_slicer.py)
+  - [ctu/cocout02_invariant_format.py](mdc:ctu/cocout02_invariant_format.py)
+  - [ctu/cocout03_inv_to_coco.py](mdc:ctu/cocout03_inv_to_coco.py)
+  - [ctu/cocout04_agg_coco.py](mdc:ctu/cocout04_agg_coco.py)
+- Packaging & versioning:
+  - [setup.py](mdc:setup.py)
+  - [ctu/_version.py](mdc:ctu/_version.py)
+- Docs & examples:
+  - [README.md](mdc:README.md)
+  - [examples/example_core_modules.py](mdc:examples/example_core_modules.py)
+  - [examples/example_highlevel_function.py](mdc:examples/example_highlevel_function.py)
+  - [examples/RunExample.ipynb](mdc:examples/RunExample.ipynb)
+  - [examples/Demo-SampleOutput.html](mdc:examples/Demo-SampleOutput.html)
+  - Sample data: [examples/sample_data/](mdc:examples/sample_data)
+
+## Typical Workflow (at a glance)
+1. Build a modification spec using wrapper defaults: `sample_modif_step_di`
+2. Produce transformed image: `get_modif_image(modif_step_di)`
+3. Update COCO for the transformed image: `get_modif_coco_annotation(img, coco_path, modif_step_di)`
+
+See [README.md](mdc:README.md) and examples under [examples/](mdc:examples) for end-to-end usage.
+
